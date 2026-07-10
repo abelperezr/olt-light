@@ -1,0 +1,15 @@
+{
+  "home.card.cli.title": {"message": "Modular eCLI"},
+  "home.card.cli.text": {"message": "Add commands, contexts and completion without touching the base platform."},
+  "home.card.dhcp.title": {"message": "ONU DHCP"},
+  "home.card.dhcp.text": {"message": "Customize the DHCPv4 and DHCPv6 subscriber emulation."},
+  "home.card.telemetry.title": {"message": "Optics and IPFIX"},
+  "home.card.telemetry.text": {"message": "Control optical diagnostics and synthetic telemetry records."},
+  "home.card.overlay.title": {"message": "Safe overlay"},
+  "home.card.overlay.text": {"message": "Extend prebuilt images without publishing YANG, seeds or device extensions."},
+  "home.title": {"message": "Customize the behavior. Keep the platform."},
+  "home.subtitle": {"message": "A public overlay to adapt the eCLI, ONU DHCP, optics and IPFIX on top of a stable OLT image."},
+  "home.start": {"message": "Get started"},
+  "home.architecture": {"message": "See the architecture"},
+  "home.quick.title": {"message": "From code to container"}
+}

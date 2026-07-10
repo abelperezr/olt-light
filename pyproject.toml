@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "light-olt-custom"
+version = "0.0.1"
+description = "Public customization layer for the Light OLT emulator"
+requires-python = ">=3.10"
+license = {text = "MIT"}
+authors = [{name = "Abel Perez"}]
+
+[project.scripts]
+light-olt-ecli = "light_olt.cli.main:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["light_olt*"]

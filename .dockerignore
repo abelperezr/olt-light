@@ -1,0 +1,11 @@
+.git
+.github
+__pycache__
+*.py[cod]
+.pytest_cache
+.ruff_cache
+tests
+website
+examples
+node_modules
+npm-debug.log*

@@ -1,0 +1,28 @@
+# Minimal smoke test: OLT + NETCONF proxy, no BNG.
+# Enough to build a customization, boot it, and poke the eCLI:
+#
+#   docker compose -f examples/docker-compose.yml up -d
+#   ssh -p 2222 isadmin@localhost      # isadmin/isadmin
+#
+# For a full lab with a BNG, use examples/lab.clab.yml instead.
+services:
+  olt:
+    image: ${OLT_IMAGE:-light-olt:dev}
+    container_name: light-olt
+    shm_size: 2gb
+    environment:
+      OLT_LT_SLOTS: "1=FGLT-D"
+    ports:
+      - "2222:22"        # eCLI
+      - "831-833:831-833"
+
+  olt-proxy:
+    image: ghcr.io/abelperezr/olt-proxy:0.0.1
+    container_name: light-olt-proxy
+    depends_on:
+      - olt
+    environment:
+      UPSTREAM_HOST: olt
+      PLANES: "831:831 832:832 833:833"
+    ports:
+      - "1831-1833:831-833"   # point Altiplano here

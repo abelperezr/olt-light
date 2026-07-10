@@ -1,0 +1,29 @@
+:root {
+  --ifm-color-primary: #006f9e;
+  --ifm-color-primary-dark: #00648e;
+  --ifm-color-primary-darker: #005e86;
+  --ifm-color-primary-darkest: #004e6e;
+  --ifm-color-primary-light: #007aae;
+  --ifm-color-primary-lighter: #0080b6;
+  --ifm-color-primary-lightest: #0090ce;
+  --ifm-code-font-size: 92%;
+  --ifm-font-family-base: Inter, ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --ifm-heading-font-weight: 750;
+}
+
+[data-theme='dark'] {
+  --ifm-color-primary: #54d9ff;
+  --ifm-color-primary-dark: #34d1ff;
+  --ifm-color-primary-darker: #24cdff;
+  --ifm-color-primary-darkest: #00b5e8;
+  --ifm-color-primary-light: #74e1ff;
+  --ifm-color-primary-lighter: #84e5ff;
+  --ifm-color-primary-lightest: #b4efff;
+  --ifm-background-color: #07111e;
+  --ifm-background-surface-color: #0d1b2a;
+}
+
+.navbar { backdrop-filter: blur(14px); background: color-mix(in srgb, var(--ifm-navbar-background-color) 88%, transparent); }
+.theme-doc-markdown img { border-radius: 12px; }
+.theme-admonition { border-radius: 12px; }
+.footer--dark { background: #050b13; }

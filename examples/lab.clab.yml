@@ -1,0 +1,69 @@
+# Full lab: BNG (Nokia SR OS) + Light OLT + NETCONF proxy.
+#
+# Point Nokia Altiplano (device-fx) at the PROXY address, ports 831+.
+# The BNG node needs your own SR OS image and license (SR-SIM is not
+# redistributable) -- swap the image reference below or drop the node
+# entirely if you only want the OLT + proxy pair.
+name: bng-olt
+prefix: ""
+mgmt:
+  network: bng-olt
+  ipv4-subnet: 172.30.30.0/24
+
+topology:
+  nodes:
+    sros:
+      kind: nokia_srsim
+      image: <your-registry>/srsim:25.10.r2      # bring your own image
+      license: configs/license/SR_SIM_license.txt
+      mgmt-ipv4: 172.30.30.2
+      type: sr-7
+      components:
+        - slot: A
+        - slot: B
+        - slot: 1
+          type: iom5-e
+          env:
+            NOKIA_SROS_MDA_1: me6-100gb-qsfp28
+            NOKIA_SROS_SFM: m-sfm6-7/12
+        - slot: 2
+          type: iom4-e-b
+          env:
+            NOKIA_SROS_MDA_1: isa2-bb            # BB ISA for ESM/BNG
+            NOKIA_SROS_SFM: m-sfm6-7/12
+      startup-config: configs/sros/bng.txt
+      ports:
+        - 56612:22
+
+    olt:
+      kind: linux
+      image: light-olt:dev                       # your customized build
+      mgmt-ipv4: 172.30.30.10
+      # Required with more than one LT plane: each sysrepo context
+      # needs its own shared memory.
+      shm-size: 4GiB
+      env:
+        # Card per slot; slot N listens on port 832+N (LT1=833 ... LT4=836).
+        OLT_LT_SLOTS: "1=FGLT-D,2=FWLT-C,3=FWLT-C,4=FWLT-C"
+      binds:
+        # Autofind ONUs, one file per LT plane. The daemon reloads a file
+        # whenever it changes, so you can edit these live.
+        - ./seeds/onts_oper.xml:/seeds/onts_oper.xml:ro          # LT1
+        - ./seeds/onts_oper_gpon_xgs.xml:/seeds/onts_oper_lt2.xml:ro  # LT2 (MPM: GPON+XGS)
+        # Optional: persist the sysrepo repos across lab redeploys.
+        # - ./persist/olt/repo:/persist/repo
+      ports:
+        - 56613:22                               # eCLI over SSH
+
+    olt-proxy:
+      kind: linux
+      image: ghcr.io/abelperezr/olt-proxy:0.0.1
+      mgmt-ipv4: 172.30.30.11
+      env:
+        UPSTREAM_HOST: 172.30.30.10
+      binds:
+        - ./persist/olt-proxy/data:/data         # persistent SSH host key
+
+  links:
+    # BNG to OLT uplink
+    - endpoints: [ "sros:1/1/c2/1", "olt:eth1" ]
