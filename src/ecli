@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+"""Stable executable entrypoint installed as /usr/local/bin/ecli."""
+
+import sys
+
+
+PACKAGE_ROOT = "/opt/light-olt"
+if PACKAGE_ROOT not in sys.path:
+    sys.path.insert(0, PACKAGE_ROOT)
+
+from light_olt.cli.main import main  # noqa: E402
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
