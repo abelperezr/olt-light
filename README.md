@@ -1,6 +1,6 @@
 # Light OLT customization layer
 
-[Español](#español) · [English](#english) · [Docs](https://abelperezr.github.io/light-olt/docs/)
+[Español](#español) · [English](#english) · [Docs](https://abelperezr.github.io/olt-light/docs/)
 
 This is the public, editable layer of the Light OLT emulator. The heavy part
 of the emulator (NETCONF planes, YANG schema, seeds, startup logic) ships
@@ -51,7 +51,7 @@ IMAGE_TAG=ghcr.io/mi-usuario/mi-olt:dev \
 ./build.sh
 ```
 
-La [documentación completa](https://abelperezr.github.io/light-olt/docs/)
+La [documentación completa](https://abelperezr.github.io/olt-light/docs/)
 cubre cómo añadir comandos al eCLI, cambiar el comportamiento DHCP, ajustar
 la óptica o extender los registros IPFIX.
 
@@ -90,7 +90,7 @@ IMAGE_TAG=ghcr.io/my-user/my-olt:dev \
 ./build.sh
 ```
 
-The [full documentation](https://abelperezr.github.io/light-olt/en/docs/)
+The [full documentation](https://abelperezr.github.io/olt-light/en/docs/)
 covers adding eCLI commands, changing DHCP behavior, tuning optical
 diagnostics, and extending IPFIX records.
 

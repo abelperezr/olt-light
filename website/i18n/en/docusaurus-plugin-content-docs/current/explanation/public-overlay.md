@@ -17,6 +17,13 @@ and IPFIX. It's our own code, MIT licensed, and designed so you can modify
 it without ever approaching the boundary: nothing you edit here requires
 touching YANG or seeds.
 
+The base image already includes working implementations of those components,
+but this repository builds from `olt-ls` and replaces them at the paths used
+by the runtime. In particular, `src/ecli` replaces `/usr/local/bin/ecli` and
+`src/light_olt/` is installed under `/opt/light-olt/`. Startup, SSH and the
+NETCONF planes are inherited from the base, so the resulting image runs the
+modified eCLI without rebuilding the YANG or sysrepo repositories.
+
 The split also protects stability. The Altiplano alignment (revisions,
 features, deviations, NACM) is fragile by design — changing it "just a
 little" breaks onboarding in ways that are painful to debug. Keeping it

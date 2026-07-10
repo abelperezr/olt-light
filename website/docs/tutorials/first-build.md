@@ -23,8 +23,8 @@ docker pull ghcr.io/abelperezr/olt-proxy:0.0.1
 ## 3. Clonar y verificar
 
 ```bash
-git clone https://github.com/abelperezr/light-olt
-cd light-olt
+git clone https://github.com/abelperezr/olt-light
+cd olt-light
 ./build.sh check
 ```
 

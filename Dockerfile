@@ -35,6 +35,6 @@ RUN chmod 0755 \
 
 LABEL org.opencontainers.image.title="light-olt-custom" \
       org.opencontainers.image.description="User-customizable eCLI, ONU DHCP, optics, and IPFIX overlay" \
-      org.opencontainers.image.source="https://github.com/abelperezr/light-olt"
+      org.opencontainers.image.source="https://github.com/abelperezr/olt-light"
 
 # CMD, ENTRYPOINT, exposed ports and health behavior are inherited from the base.

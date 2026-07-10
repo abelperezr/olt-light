@@ -18,6 +18,14 @@ repositorio.
 que puedas modificarlo sin acercarte al límite: nada de lo que edites aquí
 requiere tocar YANG ni seeds.
 
+La imagen base ya incluye implementaciones funcionales de esos componentes,
+pero el build de este repositorio parte de `olt-ls` y las reemplaza en las
+rutas que usa el runtime. En particular, `src/ecli` sustituye
+`/usr/local/bin/ecli` y `src/light_olt/` se instala en `/opt/light-olt/`.
+El arranque, SSH y los planos NETCONF se heredan de la base, así que la imagen
+resultante ejecuta el eCLI modificado sin tener que reconstruir los YANG ni
+los repositorios sysrepo.
+
 La separación también protege la estabilidad. El alineamiento con Altiplano
 (revisiones, features, deviations, NACM) es frágil por diseño — cambiarlo
 "un poquito" rompe el onboarding de formas difíciles de depurar. Al dejarlo

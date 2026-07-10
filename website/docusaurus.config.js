@@ -10,9 +10,9 @@ const config = {
   favicon: 'img/favicon.svg',
 
   url: 'https://abelperezr.github.io',
-  baseUrl: '/light-olt/',
+  baseUrl: '/olt-light/',
   organizationName: 'abelperezr',
-  projectName: 'light-olt',
+  projectName: 'olt-light',
   trailingSlash: false,
   onBrokenLinks: 'throw',
   markdown: {
@@ -35,7 +35,7 @@ const config = {
         docs: {
           routeBasePath: 'docs',
           sidebarPath: require.resolve('./sidebars.js'),
-          editUrl: 'https://github.com/abelperezr/light-olt/edit/main/website/',
+          editUrl: 'https://github.com/abelperezr/olt-light/edit/main/website/',
           showLastUpdateTime: true,
         },
         blog: false,
@@ -58,7 +58,7 @@ const config = {
         {to: '/docs/', label: 'Docs', position: 'left'},
         {type: 'localeDropdown', position: 'right'},
         {
-          href: 'https://github.com/abelperezr/light-olt',
+          href: 'https://github.com/abelperezr/olt-light',
           label: 'GitHub',
           position: 'right',
         },
@@ -79,7 +79,7 @@ const config = {
         {
           title: 'Project',
           items: [
-            {label: 'GitHub', href: 'https://github.com/abelperezr/light-olt'},
+            {label: 'GitHub', href: 'https://github.com/abelperezr/olt-light'},
             {label: 'Container images', href: 'https://github.com/abelperezr?tab=packages'},
           ],
         },
