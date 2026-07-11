@@ -66,12 +66,6 @@ Try the eCLI:
 ssh admin@172.30.30.10          # admin/admin
 ```
 
-And NETCONF straight into a plane:
-
-```bash
-ssh -s admin@172.30.30.10 -p 833 netconf    # admin/admin
-```
-
 Altiplano points at the **proxy** IP (172.30.30.11 in the example), ports
 831 and up. The topology details are in
 [Deploying a lab](../how-to/deploy-lab.md).

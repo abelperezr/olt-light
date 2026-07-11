@@ -2,6 +2,10 @@
 
 [Español](#español) · [English](#english) · [Docs](https://abelperezr.github.io/olt-light/docs/)
 
+> **Si no necesitas modificar el eCLI ni los daemons, solo descarga las imágenes base y funcionan directamente.** Para más información sobre las imágenes, consulta la [documentación](https://abelperezr.github.io/olt-light/docs/) (español e inglés).
+>
+> **If you don't need to modify the eCLI or daemons, just pull the base images and they work out of the box.** For more information about the images, see the [documentation](https://abelperezr.github.io/olt-light/en/docs/) (English and Spanish).
+
 This is the public, editable layer of the Light OLT emulator. The heavy part
 of the emulator (NETCONF planes, YANG schema, factory seeds, startup logic) ships
 prebuilt in the base images; this repo carries the four pieces you are meant

@@ -67,12 +67,6 @@ Prueba el eCLI:
 ssh admin@172.30.30.10          # admin/admin
 ```
 
-Y NETCONF directo a un plano:
-
-```bash
-ssh -s admin@172.30.30.10 -p 833 netconf    # admin/admin
-```
-
 Altiplano se apunta a la IP del **proxy** (172.30.30.11 en el ejemplo),
 puertos 831 en adelante. El detalle de la topología está en
 [Desplegar un laboratorio](../how-to/deploy-lab.md).
