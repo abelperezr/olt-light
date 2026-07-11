@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # The distribution boundary
@@ -20,7 +20,8 @@ Altiplano does not mean the controller is part of the emulator.
 **This repository** contains only the behavior layer: eCLI, DHCP, optics
 and IPFIX. It's our own code, MIT licensed, and designed so you can modify
 it without ever approaching the boundary: nothing you edit here requires
-touching YANG or seeds.
+touching YANG or the platform's factory seeds. The public XML files under
+`seeds/` are only synthetic ONU operational inventories for the example lab.
 
 The base image already includes working implementations of those components,
 but this repository builds from `olt-ls` and replaces them at the paths used
@@ -36,9 +37,9 @@ sealed in the base means an overlay customization can never break the
 integration.
 
 `./build.sh check` enforces the boundary in practice: it fails if it finds
-directories that belong to the base (`yang`, `device-ext`, `seeds`) in the
-tree. If your contribution needs them, the right place is a conversation in
-the issues, not a pull request.
+directories that belong to the base (`yang`, `device-ext`,
+`proxy/cap_allow`) in the tree. If your contribution needs them, the right
+place is a conversation in the issues, not a pull request.
 
 Nokia and Lightspan are trademarks of Nokia Corporation. This is an
 independent project and is not endorsed by Nokia.

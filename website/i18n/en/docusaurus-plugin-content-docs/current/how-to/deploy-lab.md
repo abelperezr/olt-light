@@ -29,11 +29,15 @@ The decisions that matter in the YAML:
   `/seeds/onts_oper_lt2.xml` through `..._lt4.xml` feed each clone. A clone
   without its own file inherits the global one. Files are reloaded on
   change — you can add or remove ONUs live.
+- **`config-bng/bng.txt`** contains the example SR OS startup configuration
+  for the BNG. The BNG image and license are not distributed.
 - **The proxy persists its host key in `/data`**: mount a volume so
   Altiplano doesn't see the device's SSH identity change on every redeploy.
 
 Altiplano (device-fx) points at the **proxy** IP, not the OLT: the proxy
 rewrites hello and yang-library into the format the plug expects.
+See [Nokia Altiplano integration](../explanation/altiplano-integration.md) for
+the supported blueprint and device extensions.
 
 ## With docker compose (smoke test)
 

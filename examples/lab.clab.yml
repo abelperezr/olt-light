@@ -31,7 +31,7 @@ topology:
           env:
             NOKIA_SROS_MDA_1: isa2-bb            # BB ISA for ESM/BNG
             NOKIA_SROS_SFM: m-sfm6-7/12
-      startup-config: configs/sros/bng.txt
+      startup-config: config-bng/bng.txt
       ports:
         - 56612:22
 
@@ -48,8 +48,8 @@ topology:
       binds:
         # Autofind ONUs, one file per LT plane. The daemon reloads a file
         # whenever it changes, so you can edit these live.
-        - ./seeds/onts_oper.xml:/seeds/onts_oper.xml:ro          # LT1
-        - ./seeds/onts_oper_gpon_xgs.xml:/seeds/onts_oper_lt2.xml:ro  # LT2 (MPM: GPON+XGS)
+        - ../seeds/onts_oper.xml:/seeds/onts_oper.xml:ro          # LT1
+        - ../seeds/onts_oper_gpon_xgs.xml:/seeds/onts_oper_lt2.xml:ro  # LT2 (MPM: GPON+XGS)
         # Optional: persist the sysrepo repos across lab redeploys.
         # - ./persist/olt/repo:/persist/repo
       ports:

@@ -1,5 +1,5 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # El límite de distribución
@@ -21,7 +21,9 @@ con Altiplano no implica que el controlador forme parte del emulador.
 **Este repositorio** contiene solo la capa de comportamiento: eCLI, DHCP,
 óptica e IPFIX. Es código propio, con licencia MIT, y está diseñado para
 que puedas modificarlo sin acercarte al límite: nada de lo que edites aquí
-requiere tocar YANG ni seeds.
+requiere tocar YANG ni los seeds de fábrica de la plataforma. Los XML públicos
+de `seeds/` son solo inventarios operativos sintéticos de ONUs para el
+laboratorio de ejemplo.
 
 La imagen base ya incluye implementaciones funcionales de esos componentes,
 pero el build de este repositorio parte de `olt-ls` y las reemplaza en las
@@ -39,7 +41,7 @@ integración.
 
 `./build.sh check` refuerza el límite en la práctica: falla si detecta en
 el árbol directorios que pertenecen a la base (`yang`, `device-ext`,
-`seeds`). Si tu contribución los necesita, el lugar correcto es una
+`proxy/cap_allow`). Si tu contribución los necesita, el lugar correcto es una
 conversación en los issues, no un pull request.
 
 Nokia y Lightspan son marcas de Nokia Corporation. Este es un proyecto

@@ -27,7 +27,7 @@ const cards = [
   {
     icon: '🧱',
     title: <Translate id="home.card.overlay.title">Overlay seguro</Translate>,
-    text: <Translate id="home.card.overlay.text">Extiende imágenes precompiladas sin publicar YANG, seeds o device extensions.</Translate>,
+    text: <Translate id="home.card.overlay.text">Extiende imágenes precompiladas sin publicar YANG, seeds de fábrica o device extensions.</Translate>,
     to: '/docs/explanation/public-overlay',
   },
 ];

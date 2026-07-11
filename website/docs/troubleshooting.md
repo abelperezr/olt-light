@@ -8,8 +8,9 @@ sidebar_position: 6
 
 Lee la primera línea del error: o es un fallo de sintaxis/prueba en tu
 código (el traceback apunta al archivo), o es la salvaguarda de directorios
-restringidos — elimina `yang/`, `device-ext/` o `seeds/` del árbol; no
-pertenecen a este repo.
+restringidos — elimina `yang/`, `device-ext/` o `proxy/cap_allow/` del árbol;
+no pertenecen a este repo. `seeds/` puede contener únicamente los inventarios
+operativos sintéticos de ONUs del laboratorio.
 
 ## netopeer2 responde con timeouts o los planos no levantan
 

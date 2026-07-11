@@ -27,11 +27,15 @@ puedes modificar sin romper el alineamiento con Altiplano:
 - los diagnósticos ópticos por ONU,
 - el exportador IPFIX sintético.
 
-Los modelos YANG, los device extensions, los seeds y el código del proxy
-**no** están en este repo; van horneados en las imágenes base
+Los modelos YANG, los device extensions, los seeds de fábrica y el código del
+proxy **no** están en este repo; van horneados en las imágenes base
 (`ghcr.io/abelperezr/olt-ls` y `ghcr.io/abelperezr/olt-proxy`, ambas
 públicas). El [límite de distribución](./explanation/public-overlay.md) explica
 el porqué.
+
+Los XML de `seeds/` sí son públicos: son inventarios operativos sintéticos de
+ONUs usados por el laboratorio de ejemplo, no seeds de configuración de la
+plataforma.
 
 ## Por dónde empezar
 
@@ -41,3 +45,5 @@ el porqué.
   docker compose para un smoke test.
 - [Referencia de runtime](./reference/runtime.md): puertos, credenciales y
   variables de entorno.
+- [Integración con Nokia Altiplano](./explanation/altiplano-integration.md):
+  blueprint y device extensions compatibles.

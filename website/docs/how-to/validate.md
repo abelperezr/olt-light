@@ -16,7 +16,8 @@ necesitan Docker.
 Compila todo el código Python del overlay y corre las pruebas unitarias de
 `tests/`. Como salvaguarda, también falla si aparecen en el árbol
 directorios que pertenecen a las imágenes base (`yang`, `device-ext`,
-`seeds`) — este repo no debe contenerlos nunca.
+`proxy/cap_allow`) — este repo no debe contenerlos nunca. Los XML sintéticos
+de inventario ONU bajo `seeds/` sí están permitidos.
 
 ## Nivel 2: probar los daemons en seco
 

@@ -15,8 +15,9 @@ Docker.
 
 Compiles all the overlay's Python code and runs the unit tests under
 `tests/`. As a guardrail, it also fails if directories that belong to the
-base images (`yang`, `device-ext`, `seeds`) appear in the tree — this repo
-must never contain them.
+base images (`yang`, `device-ext`, `proxy/cap_allow`) appear in the tree —
+this repo must never contain them. Synthetic ONU inventory XML under `seeds/`
+is allowed.
 
 ## Level 2: dry-run the daemons
 

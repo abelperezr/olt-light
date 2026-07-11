@@ -29,11 +29,15 @@ Las decisiones importantes del YAML:
   un clon no tiene archivo propio, hereda el global. Los archivos se
   recargan solos al cambiar su mtime — puedes agregar o quitar ONUs en
   caliente.
+- **`config-bng/bng.txt`** contiene la configuración de arranque de ejemplo
+  para el BNG SR OS. La imagen y la licencia del BNG no se distribuyen.
 - **El proxy persiste su host key en `/data`**: monta un volumen para que
   Altiplano no vea cambiar la identidad SSH del equipo en cada redeploy.
 
 Altiplano (device-fx) se apunta a la IP del **proxy**, no a la OLT:
 el proxy reescribe hello y yang-library al formato que el plug espera.
+Consulta [Integración con Nokia Altiplano](../explanation/altiplano-integration.md)
+para el blueprint y los device extensions compatibles.
 
 ## Con docker compose (smoke test)
 

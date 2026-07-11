@@ -3,7 +3,7 @@
 [Español](#español) · [English](#english) · [Docs](https://abelperezr.github.io/olt-light/docs/)
 
 This is the public, editable layer of the Light OLT emulator. The heavy part
-of the emulator (NETCONF planes, YANG schema, seeds, startup logic) ships
+of the emulator (NETCONF planes, YANG schema, factory seeds, startup logic) ships
 prebuilt in the base images; this repo carries the four pieces you are meant
 to hack on:
 
@@ -12,8 +12,10 @@ to hack on:
 - ONU optical diagnostics,
 - synthetic IPFIX export.
 
-No YANG modules, device extensions, seeds or proxy source live here — see
-[NOTICE.md](NOTICE.md) for the distribution boundary.
+No YANG modules, device extensions, factory seeds or proxy source live here.
+The XML files under `seeds/` are editable, synthetic ONU inventory fixtures
+for the example lab, not platform configuration. See [NOTICE.md](NOTICE.md)
+for the distribution boundary.
 
 ## Español
 
@@ -107,8 +109,8 @@ diagnostics, and extending IPFIX records.
 ## What stays in the base images
 
 The OLT and proxy base images are separate artifacts. This repository does
-not expose their YANG models, device extensions, seeds, proxy source, or
-startup internals. See [NOTICE.md](NOTICE.md).
+not expose their YANG models, device extensions, factory/platform seeds,
+proxy source, or startup internals. See [NOTICE.md](NOTICE.md).
 
 ## License
 

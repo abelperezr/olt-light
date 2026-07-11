@@ -8,8 +8,9 @@ sidebar_position: 6
 
 Read the first line of the error: it's either a syntax/test failure in your
 code (the traceback points at the file), or the restricted-directory
-guardrail — remove `yang/`, `device-ext/` or `seeds/` from the tree; they
-don't belong in this repo.
+guardrail — remove `yang/`, `device-ext/` or `proxy/cap_allow/` from the tree;
+they don't belong in this repo. `seeds/` may contain only the lab's synthetic
+ONU operational inventories.
 
 ## netopeer2 times out or the planes don't start
 

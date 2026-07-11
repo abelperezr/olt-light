@@ -5,9 +5,10 @@ customization boundary — this repo is the editable layer, not the emulator.
 
 ## Before opening a pull request
 
-1. Don't add YANG modules, device extensions, seed exports, capability
-   allowlists, or anything copied out of the base images. `./build.sh check`
-   enforces this.
+1. Don't add YANG modules, device extensions, factory/platform seed exports,
+   capability allowlists, or anything copied out of the base images.
+   Synthetic ONU inventory fixtures under `seeds/` are allowed.
+   `./build.sh check` enforces the restricted directories.
 2. Keep `/usr/local/bin/ecli` compatible with the base image.
 3. Don't move the daemon paths — the base image's startup supervisor expects
    them exactly where the Dockerfile puts them.

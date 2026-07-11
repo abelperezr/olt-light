@@ -5,9 +5,13 @@ sidebar_position: 1
 # Estructura del proyecto
 
 ```
+.github/workflows/
+  pages.yml             build y despliegue de la documentación en Pages
 Dockerfile              overlay: copia src/ sobre la imagen base
 build.sh                check (pruebas) + build de la imagen personalizada
 pyproject.toml          metadatos del paquete light_olt
+README.md               introducción y arranque rápido
+NOTICE.md               límite de distribución y avisos de terceros
 src/
   ecli                  ejecutable del eCLI (shell de login por SSH)
   light_olt/            paquete Python con la lógica del eCLI
@@ -16,11 +20,22 @@ src/
     onu_optics.py       niveles ópticos por ONU (operational)
     ipfix_exporter.py   telemetría IPFIX sintética
 tests/                  pruebas unitarias del overlay
+seeds/
+  onts_oper.xml         inventario ONU sintético para LT1
+  onts_oper_gpon_xgs.xml
+                        inventario GPON/XGS-PON sintético para LT2
 examples/
   lab.clab.yml          laboratorio containerlab: BNG + OLT + proxy
   docker-compose.yml    smoke test mínimo: OLT + proxy
+  config-bng/
+    bng.txt             configuración de ejemplo del BNG Nokia SR OS
 website/                esta documentación (Docusaurus, es/en)
 ```
+
+Los archivos de `seeds/` son fixtures editables de inventario operativo para
+el laboratorio. No son exports de los seeds de fábrica de la imagen base.
+`examples/config-bng/bng.txt` configura el nodo BNG del ejemplo; la imagen y la
+licencia de Nokia SR OS deben ser aportadas por el usuario.
 
 ## Rutas dentro de la imagen
 
@@ -37,6 +52,7 @@ fijas. El Dockerfile las respeta; si las cambias, los daemons no arrancan.
 
 ## Qué no está aquí
 
-Modelos YANG, device extensions, seeds, repos sysrepo precompilados,
-allowlists de capabilities y el código del proxy viven en las imágenes
-base. Ver [el límite de distribución](../explanation/public-overlay.md).
+Modelos YANG, device extensions, seeds de fábrica o de configuración, repos
+sysrepo precompilados, allowlists de capabilities y el código del proxy viven
+en las imágenes base. Ver
+[el límite de distribución](../explanation/public-overlay.md).

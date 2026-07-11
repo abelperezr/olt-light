@@ -31,7 +31,8 @@ cd olt-light
 `check` compila el código Python del overlay y corre las pruebas unitarias.
 También verifica, como salvaguarda, que nadie haya metido en el árbol
 directorios que pertenecen a las imágenes base (`yang`, `device-ext`,
-`seeds`): esos no deben existir en este repo.
+`proxy/cap_allow`): esos no deben existir en este repo. Los inventarios ONU
+sintéticos de `seeds/` son parte intencional del ejemplo.
 
 ## 4. Construir tu imagen
 

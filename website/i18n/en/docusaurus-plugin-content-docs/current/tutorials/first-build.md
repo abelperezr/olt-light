@@ -29,8 +29,9 @@ cd olt-light
 
 `check` compiles the overlay's Python code and runs the unit tests. As a
 guardrail, it also fails if directories that belong to the base images
-(`yang`, `device-ext`, `seeds`) show up in the tree — those must never
-exist in this repo.
+(`yang`, `device-ext`, `proxy/cap_allow`) show up in the tree — those must
+never exist in this repo. The synthetic ONU inventories under `seeds/` are an
+intentional part of the example.
 
 ## 4. Build your image
 

@@ -18,7 +18,7 @@ check_public_tree() {
   # Guardrail: these directories belong to the base images and must never
   # end up in this public repo (or baked into the overlay by accident).
   local forbidden
-  for forbidden in yang device-ext seeds proxy/cap_allow; do
+  for forbidden in yang device-ext proxy/cap_allow; do
     if [[ -e "$forbidden" ]]; then
       echo "ERROR: restricted path must not be part of this overlay: $forbidden" >&2
       return 1

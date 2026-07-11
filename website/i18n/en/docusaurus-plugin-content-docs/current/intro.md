@@ -26,11 +26,14 @@ here:
 - per-ONU optical diagnostics,
 - the synthetic IPFIX exporter.
 
-YANG models, device extensions, seeds and the proxy source are **not** in
+YANG models, device extensions, factory seeds and the proxy source are **not** in
 this repo; they ship baked into the base images
 (`ghcr.io/abelperezr/olt-ls` and `ghcr.io/abelperezr/olt-proxy`, both
 public). The [distribution boundary](./explanation/public-overlay.md) explains
 why.
+
+The XML files under `seeds/` are public synthetic ONU operational inventories
+used by the example lab, not platform configuration seeds.
 
 ## Where to start
 
@@ -40,3 +43,5 @@ why.
   compose for a smoke test.
 - [Runtime reference](./reference/runtime.md): ports, credentials and
   environment variables.
+- [Nokia Altiplano integration](./explanation/altiplano-integration.md): the
+  supported blueprint and device extensions.
