@@ -32,8 +32,8 @@ def _q(ns, name):
 class EditSession:
     def __init__(self, plane):
         self.plane = plane
-        self.roots = {}      # (modulo, top) -> ET.Element
-        self.idns = {}       # ns -> prefijo idN (identityrefs)
+        self.roots = {}      # (module, top) -> ET.Element
+        self.idns = {}       # namespace -> idN prefix for identityrefs
         self.dirty = False
 
     def _ensure(self, segs):

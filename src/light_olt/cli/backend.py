@@ -107,7 +107,7 @@ confdConfig logs netconfLog enabled
 confdConfig logs netconfLog file enabled"""
 
 # --------------------------------------------------------------------------
-# tabla curada de respaldo (si no existe el indice generado en build)
+# Curated fallback used when the generated schema index is missing or partial.
 # --------------------------------------------------------------------------
 def _loose(mod):
     return {"k": "c", "m": mod, "c": {}, "loose": 1}
@@ -129,16 +129,13 @@ FALLBACK_NS = {
 
 
 def _merge_index(curated, gen):
-    """Funde el arbol curado por DEBAJO del generado.
+    """Merge the curated tree underneath the generated schema index.
 
-    Reglas por nodo:
-      - nodo solo en curated  -> se agrega.
-      - nodo solo en gen      -> se conserva.
-      - nodo en ambos: el generado manda EXCEPTO cuando quedo incompleto:
-        si curated lo marca como lista con keys y gen no tiene keys (o no es
-        lista), adoptamos k='l'+keys de curated. Los hijos se funden recursivo.
-    Esto repara el caso real: yanglint deja onus/onu o interfaces/interface
-    como contenedor vacio o sin [key], y la navegacion CLI falla.
+    Generated nodes take precedence. Curated-only nodes are added, and curated
+    list metadata fills in generated nodes that are missing their keys. Child
+    trees are merged recursively. This repairs mounted paths such as
+    ``onus/onu`` and ``interfaces/interface`` when yanglint leaves them as
+    empty containers.
     """
     out = dict(gen)
     for name, cnode in curated.items():
@@ -147,19 +144,19 @@ def _merge_index(curated, gen):
             out[name] = cnode
             continue
         merged = dict(gnode)
-        # adoptar estructura de lista del curado si el generado no la tiene
+        # Restore list metadata when the generated node does not have it.
         if cnode.get("k") == "l" and (gnode.get("k") != "l"
                                       or not gnode.get("keys")):
             merged["k"] = "l"
             merged["keys"] = cnode.get("keys", [])
             if "m" not in merged and "m" in cnode:
                 merged["m"] = cnode["m"]
-        # propagar 'loose' del curado (permite navegar subarboles mount)
+        # Loose nodes allow navigation below incomplete mounted schemas.
         if cnode.get("loose") and not merged.get("loose"):
             merged["loose"] = 1
         if "m" not in merged and "m" in cnode:
             merged["m"] = cnode["m"]
-        # hijos
+        # Merge children recursively.
         gc = gnode.get("c") or {}
         cc = cnode.get("c") or {}
         if gc or cc:
@@ -191,10 +188,10 @@ def fallback_tree(plane):
             "onu": {"k": "l", "m": "bbf-fiber-onu-emulated-mount",
                     "keys": ["name"], "loose": 1, "c": {
                 "usage": leaf("bbf-fiber-onu-emulated-mount"),
-                # root: subarbol mount (classifiers, policies, interfaces,
-                # xpongemtcont, hardware...). loose -> navegable libremente.
+                # Mounted root for classifiers, policies, interfaces,
+                # xpongemtcont, and hardware. Loose means freely navigable.
                 "root": _loose("bbf-fiber-onu-emulated-mount"),
-                # template-parameters: ONU instanciada desde plantilla
+                # Parameters recorded when an ONU is created from a template.
                 "template-parameters": {
                     "k": "c", "m": "nokia-onus-from-template", "c": {
                         "template-ref": leaf("nokia-onus-from-template"),
@@ -250,15 +247,15 @@ def fallback_tree(plane):
 
 
 # --------------------------------------------------------------------------
-# backend sysrepo
+# Sysrepo backend.
 # --------------------------------------------------------------------------
 class Plane:
     def __init__(self, name):
         self.name = name
         m = re.fullmatch(r"lt([2-4])", name)
         if m and name not in PLANES:
-            # plano LT clonado en runtime (OLT_LT_PLANES>1): mismo esquema
-            # que 'lt', repo/SHM/puerto propios, indice CLI compartido.
+            # Runtime LT clones share the LT schema index but use their own
+            # repository, shared-memory prefix, and NETCONF port.
             n = int(m.group(1))
             self.repo, self.shm, self.port = ("/repo/lt%d" % n,
                                               "lt%d_" % n, 832 + n)
@@ -289,13 +286,9 @@ class Plane:
         except Exception:
             self._ns = dict(FALLBACK_NS)
             self._desc = {}
-        # El indice generado por yanglint puede venir incompleto: los modulos
-        # de schema-mount de la Lightspan (onus/onu, varios interface) hacen
-        # que yanglint falle a medias y se use stdout parcial, dejando esos
-        # subarboles sin la estructura de lista+keys. Para que la navegacion
-        # (onus onu <X>, interfaces interface <Y>) funcione SIEMPRE, fundimos
-        # el arbol curado por debajo del generado: el generado gana donde
-        # existe; el curado rellena lo que falte.
+        # Mounted Lightspan schemas can make yanglint stop after emitting a
+        # partial index. Merge in the curated tree so paths such as
+        # ``onus onu <X>`` and ``interfaces interface <Y>`` retain list keys.
         curated = fallback_tree(self.idx_name)
         if gen is None:
             self._idx = curated
@@ -332,7 +325,7 @@ class Plane:
             cache.pop(next(iter(cache)))
 
     def running_signature(self):
-        """Huella barata de los datastores running vivos en /dev/shm."""
+        """Return a cheap signature for the live running datastores."""
         now = time.monotonic()
         if (self._sig_cache is not None
                 and now - self._sig_cache_at < SIG_CACHE_SECONDS):
@@ -362,14 +355,11 @@ class Plane:
         return time.time() < self._suppress_commit_notice_until
 
     def run(self, args):
-        # Los datastores viven en /dev/shm/<pfx>_*.{running,startup,...} y los
-        # crea netopeer2/oper_push como ROOT (modo 0600). El eCLI corre como el
-        # usuario de login (admin), que no puede abrirlos -> el commit aborta
-        # con "Permission denied". La OLT real tiene un solo backend
-        # privilegiado compartido por CLI y NETCONF; aqui lo reproducimos
-        # ejecutando las ops sysrepo como root via 'sudo -n'. Si ya somos root
-        # (o no hay sudo), se ejecuta directo. Las SYSREPO_* van con -E porque
-        # seleccionan el plano/repo correcto.
+        # netopeer2 and oper_push create 0600 datastore files as root. The eCLI
+        # normally runs as the admin login user, so sysrepo operations need
+        # non-interactive sudo. Already-root processes, and minimal images
+        # without sudo, execute directly. Explicit SYSREPO_* values keep the
+        # operation on the requested plane.
         if os.geteuid() != 0 and _SUDO:
             args = [_SUDO, "-n", "/usr/bin/env",
                     "SYSREPO_REPOSITORY_PATH=" + self.repo,
@@ -412,17 +402,13 @@ class Plane:
 
     def list_instances(self, module, top_name, path_names, key_names,
                        path_keys=None, prefix_values=None):
-        """Keys de las instancias EXISTENTES de una lista en running.
+        """Return keys for list instances that exist in running.
 
-        path_names: nombres de nodos desde la raiz hasta la lista, p.ej.
-                    ["onus", "onu"]. key_names: keys de la lista (suele ser
-                    una sola, p.ej. ["name"]).
-        path_keys:  filtros de keys para listas ancestro ya consumidas,
-                    indexados por posicion en path_names.
-        prefix_values: keys ya escritas de la lista objetivo; se usan para
-                       completar la siguiente key en listas multikey.
-        Devuelve [(valor_primera_key, "")...] para alimentar el TAB/?.
-        Cacheado por firma del running para que pulsar TAB no relea cada vez.
+        ``path_names`` runs from the root to the target list, while
+        ``key_names`` describes that list's keys. ``path_keys`` filters any
+        ancestor lists already resolved. ``prefix_values`` contains keys
+        already typed for a multi-key list. Results feed TAB/``?`` completion
+        and are cached against the running datastore signature.
         """
         if not module or not path_names or not key_names:
             return []
@@ -442,9 +428,9 @@ class Plane:
         cached = self._inst_cache.get(ck)
         if cached is not None and cached[0] == sig:
             return cached[1]
-        # Exportamos la raiz del modulo top y caminamos por nombres locales.
-        # Los subarboles montados/augmentados cambian de namespace dentro del
-        # XML; un XPath absoluto sin prefijos no es portable en sysrepo.
+        # Export the top module and walk by local names. Mounted and augmented
+        # subtrees can change XML namespaces, so an unprefixed absolute XPath
+        # is not portable across sysrepo versions.
         out = []
         roots = self.export_xml_roots("running", export_module)
         if roots:
@@ -482,7 +468,7 @@ class Plane:
 
 
 class CommitWatcher:
-    """Emula el mensaje asíncrono de ConfD tras commits por NETCONF."""
+    """Emit the ConfD-style notification used after external NETCONF commits."""
     def __init__(self, plane, user):
         self.plane = plane
         self.user = user

@@ -186,7 +186,7 @@ class MdCli:
                 return run_ping(toks[1:], out)
             if c in ("logout", "exit", "quit"):
                 return ("logout",)
-        if c == "ping":                 # comando global, tambien en configure
+        if c == "ping":                 # Available in every CLI context.
             return run_ping(toks[1:], out)
         if c == "exit":
             if toks[1:2] == ["all"]:
@@ -238,7 +238,7 @@ class MdCli:
             out("MINOR: MGMT_CORE #2201: Unknown element - '%s'" % tok)
             return None
         for a in actions:
-            # navegar a un contexto existente no ensucia el candidate ('*')
+            # Entering an existing context must not mark the candidate dirty.
             if a[0] == "create" and segs_exist_in_running(self.plane, a[1]):
                 continue
             self.session.add(a)

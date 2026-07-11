@@ -8,7 +8,7 @@ sidebar_position: 2
 
 | Puerto | Servicio |
 |---|---|
-| 22 | eCLI por SSH (`isadmin`/`isadmin`, `admin`/`admin`) |
+| 22 | eCLI por SSH (`admin`/`admin`) |
 | 831 | NETCONF plano IHUB |
 | 832 | NETCONF plano SHELF |
 | 833 | NETCONF LT1 |

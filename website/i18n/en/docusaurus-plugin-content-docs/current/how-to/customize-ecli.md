@@ -5,7 +5,7 @@ sidebar_position: 2
 # Customizing the eCLI
 
 The eCLI is the Lightspan-style shell served over SSH on the container's
-port 22 (users `isadmin`/`isadmin` and `admin`/`admin`). It emulates two
+port 22 (username `admin`, password `admin`). It emulates two
 dialects: ConfD J-style for SHELF and LT, and SR OS MD-CLI for the IHUB,
 with TAB completion and `?` help.
 
@@ -22,7 +22,7 @@ shell for both users.
 ./build.sh check && ./build.sh
 # 3. try it
 docker compose -f examples/docker-compose.yml up -d
-ssh -p 2222 isadmin@localhost
+ssh -p 2222 admin@localhost
 ```
 
 For faster iteration, mount your working copy straight over the binary and

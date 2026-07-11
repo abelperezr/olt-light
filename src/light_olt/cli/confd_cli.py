@@ -45,12 +45,12 @@ class ConfdCLI:
     def __init__(self, plane_name, user, lt_n=1):
         if plane_name == "lt" and lt_n > 1 \
                 and os.path.isdir("/repo/lt%d" % lt_n):
-            plane_name = "lt%d" % lt_n     # plano LT clonado (OLT_LT_PLANES)
+            plane_name = "lt%d" % lt_n     # Runtime LT clone.
         self.plane = Plane(plane_name)
         self.user = user
         self.lt_n = lt_n
         self.config_mode = False
-        self.frames = []   # pila de modos; cada frame = ruta absoluta [PathSeg]
+        self.frames = []   # Mode stack; each frame is an absolute PathSeg path.
         self.session = EditSession(self.plane)
         self._commit_watcher = None
         self._hostname_cache = None
@@ -152,19 +152,18 @@ class ConfdCLI:
         return opts
 
     def oper_builtins(self):
-        """Comandos operacionales disponibles en el contexto actual."""
+        """Return operational commands available in the current context."""
         builtins = dict(BUILTIN_OPER)
         if self.plane.name != "shelf":
             builtins.pop("forward", None)
         return builtins
 
     def forward_targets(self):
-        """Destinos existentes, derivados del inventario del SHELF.
+        """Return forwarding targets found in the SHELF inventory.
 
-        Altiplano crea un componente Board-LTn al insertar cada tarjeta. Ese
-        inventario es la fuente de verdad tanto para el TAB como para validar
-        un ``forward`` escrito a mano. El IHUB no es una Board y se ofrece
-        siempre como destino fijo del SHELF.
+        Each inserted card appears as a ``Board-LTn`` component. Completion and
+        validation use that inventory. IHUB is not a board, so SHELF always
+        offers it as a fixed target.
         """
         if self.plane.name != "shelf":
             return []
@@ -180,14 +179,14 @@ class ConfdCLI:
                                          re.IGNORECASE)
                     if match:
                         slots.add(int(match.group(1)))
-            # operational normalmente ya es la vista combinada. Solo leer
-            # running por separado cuando esa vista no contiene tarjetas.
+            # Operational normally contains the combined view. Fall back to
+            # running only when it has no card inventory.
             if slots:
                 break
         return ["ihub"] + ["lt-%d" % n for n in sorted(slots)]
 
     def completion_options(self, toks, partial):
-        """[(nombre, desc)] para el token parcial actual"""
+        """Return ``(name, description)`` pairs for the partial token."""
         opts = {}
         if not self.config_mode:
             if not toks:
@@ -227,15 +226,13 @@ class ConfdCLI:
                     opts = {n: d for n, d in opts.items()
                             if n.startswith(partial)}
                 return sorted(opts.items())
-            # Caminamos el schema por nombres registrando la ruta de nodos y
-            # cuantas keys lleva consumidas la ultima lista. Esto es
-            # independiente de resolve() (que es greedy con las keys y aborta
-            # con 'incomplete command' justo en el caso que nos interesa).
+            # Walk the schema separately from resolve(), tracking the node path
+            # and keys consumed by the last list. resolve() is intentionally
+            # greedy and reports an incomplete command at this exact point.
             inst = self._list_instances_for(base, body)
             if inst is not None:
-                # Esperando la key de una lista: la OLT real muestra SOLO las
-                # instancias existentes (mas el placeholder del nombre de key),
-                # sin los builtins de config.
+                # At a list key, show only existing instances and omit config
+                # builtins, matching the device's completion behavior.
                 for kname, kdesc in inst:
                     opts.setdefault(kname, kdesc)
                 if partial:
@@ -373,7 +370,7 @@ class ConfdCLI:
             self.print_completions(sorted(self.oper_builtins().items()), out)
             return None
         if c in self.plane.index:
-            # nodo YANG en modo operacional -> muestra su subarbol
+            # A YANG node in operational mode displays its subtree.
             if len(toks) > 1:
                 err = self._schema_path_error(toks)
                 if err is not None:
@@ -436,9 +433,8 @@ class ConfdCLI:
         if c == "help":
             self.print_completions(sorted(BUILTIN_CONFIG.items()), out)
             return None
-        # comando de configuracion: intenta en el modo actual y, si el
-        # PRIMER token no existe ahi, sube por los modos ancestros hasta
-        # la raiz (comportamiento del eCLI real)
+        # Resolve from the current mode first. If the first token is invalid,
+        # retry each ancestor up to the root, as the device eCLI does.
         bases = [list(f) for f in reversed(self.frames)] + [[]]
         actions = mode = None
         used = len(bases) - 1
@@ -462,11 +458,11 @@ class ConfdCLI:
             self.syntax_error(raw, toks, last_err.pos if last_err else 0, out)
             return None
         for a in actions:
-            # navegar a un contexto existente no ensucia la sesion
+            # Entering an existing context must not mark the session dirty.
             if a[0] == "create" and segs_exist_in_running(self.plane, a[1]):
                 continue
             self.session.add(a)
-        # recorta la pila al frame usado y apila el nuevo modo si profundizo
+        # Trim to the frame that resolved the command, then push a deeper mode.
         keep = len(self.frames) - used
         self.frames = self.frames[:max(keep, 0)]
         base_len = len(bases[used])
@@ -556,9 +552,8 @@ class ConfdCLI:
     def show_full(self, filter_toks, pipe, out):
         root_name = filter_toks[0] if filter_toks else None
         root_node = self.plane.root_node(root_name) if root_name else None
-        # En un submodo de config (p.ej. config-onu-ONT-001) y sin filtro
-        # explicito, 'show full-configuration' se acota al contexto actual,
-        # como la OLT real: muestra solo el subarbol del frame vigente.
+        # With no explicit filter, show only the current configuration subtree
+        # when the session is in a submode such as config-onu-ONT-001.
         ctx = self.ctx()
         if root_node is None and not filter_toks and ctx:
             top_seg = ctx[0]
@@ -574,7 +569,7 @@ class ConfdCLI:
                     roots.append(ET.fromstring(ET.tostring(eroot)))
                 else:
                     merge_overlay(hit, eroot)
-            # localizar el subarbol exacto del contexto (siguiendo keys)
+            # Find the exact context subtree by following its list keys.
             lines = []
             for top in roots:
                 if strip_ns(top.tag) != root_name:
@@ -637,10 +632,12 @@ class ConfdCLI:
         return None
 
     def _descend_to_ctx(self, top_el, ctx):
-        """Desde el elemento raiz <top>, baja siguiendo los segmentos del
-        contexto (ctx[1:]; ctx[0] es el propio top) hasta el subarbol del
-        submodo actual. Para listas, casa por el valor de la(s) key(s).
-        Devuelve el elemento o None si no existe en el datastore."""
+        """Follow context segments from ``top_el`` to the active subtree.
+
+        ``ctx[0]`` represents the supplied top element, so traversal starts at
+        ``ctx[1:]``. List entries are matched by key value. ``None`` means the
+        context does not exist in the datastore.
+        """
         cur = top_el
         for seg in ctx[1:]:
             found = None

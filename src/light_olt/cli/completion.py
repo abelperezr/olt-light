@@ -17,7 +17,7 @@ except ImportError:  # pragma: no cover - platforms without GNU readline
     readline = None
 
 class Completions:
-    """estado compartido entre completer y display hook de readline"""
+    """State shared by the completer and readline's display hook."""
     def __init__(self):
         self.desc = {}
         self.title = "Possible completions:"

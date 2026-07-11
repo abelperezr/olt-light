@@ -62,7 +62,7 @@ containerlab deploy -t lab.clab.yml
 Try the eCLI:
 
 ```bash
-ssh isadmin@172.30.30.10        # isadmin/isadmin
+ssh admin@172.30.30.10          # admin/admin
 ```
 
 And NETCONF straight into a plane:

@@ -36,7 +36,7 @@ namespace.
 ```bash
 docker compose -f examples/docker-compose.yml up -d
 docker compose -f examples/docker-compose.yml logs --tail=100 olt
-ssh -p 2222 isadmin@localhost
+ssh -p 2222 admin@localhost
 ```
 
 With your freshly built image up, check that the three planes start, the

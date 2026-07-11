@@ -46,7 +46,7 @@ def _children(node):
 
 
 def lookup(node, token):
-    """exacto, o por prefijo unico (abreviacion ConfD/SR Linux)."""
+    """Look up an exact child name or an unambiguous abbreviated prefix."""
     ch = _children(node)
     if token in ch:
         return token, ch[token]
@@ -61,9 +61,11 @@ def lookup(node, token):
 
 
 def resolve(plane, ctx_segs, tokens):
-    """(acciones, modo). Regla ConfD: el modo resultante es la lista mas
-    profunda atravesada, o el nodo final si la linea termina en lista o
-    contenedor."""
+    """Resolve tokens into edit actions and the resulting CLI mode.
+
+    ConfD leaves the session in the deepest list it traversed, or on the final
+    container/list when the command ends on that node.
+    """
     node = ctx_segs[-1].node if ctx_segs else {"c": plane.index, "k": "c"}
     segs = list(ctx_segs)
     actions = []
@@ -121,7 +123,7 @@ def resolve(plane, ctx_segs, tokens):
                 if i < len(tokens):
                     val = tokens[i]
                 else:
-                    val = "true"   # leaf booleano sin valor: "enabled"
+                    val = "true"   # A valueless boolean leaf means enabled.
                     i -= 1
                 actions.append(("set", list(segs), leafseg, val))
         i += 1
@@ -140,11 +142,11 @@ def resolve(plane, ctx_segs, tokens):
 
 
 def schema_list_instances_for(plane, base, body):
-    """Completa keys reales cuando una ruta YANG termina en una lista.
+    """Return existing list keys when a YANG path ends at a list.
 
-    base es el contexto absoluto actual ([PathSeg...]) y body son los tokens
-    escritos desde ese contexto. Devuelve None si el punto actual no espera
-    una key de lista; devuelve una lista, posiblemente vacia, si si aplica.
+    ``base`` is the current absolute context and ``body`` contains tokens typed
+    from that context. ``None`` means the cursor is not at a list-key position;
+    a list, including an empty one, means that list-key completion applies.
     """
     if not body:
         return None

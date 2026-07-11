@@ -43,7 +43,7 @@ file with OLT + proxy:
 ```bash
 docker compose -f examples/docker-compose.yml up -d
 docker compose -f examples/docker-compose.yml logs --tail=100 olt
-ssh -p 2222 isadmin@localhost
+ssh -p 2222 admin@localhost
 ```
 
 You can point it at another image without editing the file:

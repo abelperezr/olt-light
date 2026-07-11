@@ -12,6 +12,11 @@ ports with GPON and XGS-PON ONUs, a Lightspan-style eCLI over SSH, and
 emulation daemons for ONU DHCP, optics and IPFIX. It integrates end-to-end
 with Nokia Altiplano Access Controller through a companion NETCONF proxy.
 
+Nokia Altiplano, its licenses, and the official Nokia Lightspan eCLI
+configuration guide are not included in this project or its container images.
+Obtain any required vendor software and documentation through the appropriate
+channels.
+
 This repository is the **customization layer**: the full emulator ships
 prebuilt in the base images, and only the parts you can safely modify live
 here:

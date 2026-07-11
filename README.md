@@ -17,6 +17,11 @@ No YANG modules, device extensions, seeds or proxy source live here — see
 
 ## Español
 
+Ni el repositorio ni las imágenes incluyen Nokia Altiplano, licencias de
+Altiplano o la guía oficial de configuración del eCLI de Nokia Lightspan. El
+software y la documentación del fabricante deben obtenerse por los canales
+correspondientes.
+
 ### Inicio rápido
 
 Requisitos: Docker y Python 3.10+. Las imágenes son públicas, no hace falta
@@ -36,7 +41,7 @@ containerlab:
 ```bash
 cd examples
 containerlab deploy -t lab.clab.yml
-ssh isadmin@<ip-olt>        # eCLI (isadmin/isadmin)
+ssh admin@<ip-olt>          # eCLI (admin/admin)
 ```
 
 También hay un `examples/docker-compose.yml` mínimo (OLT + proxy) para un
@@ -57,6 +62,11 @@ la óptica o extender los registros IPFIX.
 
 ## English
 
+Neither the repository nor the container images include Nokia Altiplano
+software, Altiplano licenses, or the official Nokia Lightspan eCLI
+configuration guide. Obtain any required vendor software and documentation
+through the appropriate channels.
+
 ### Quick start
 
 Requirements: Docker and Python 3.10+. The images are public — no GHCR
@@ -75,7 +85,7 @@ To bring up a full lab (OLT + proxy + BNG) use the containerlab example:
 ```bash
 cd examples
 containerlab deploy -t lab.clab.yml
-ssh isadmin@<olt-ip>        # eCLI (isadmin/isadmin)
+ssh admin@<olt-ip>          # eCLI (admin/admin)
 ```
 
 A minimal `examples/docker-compose.yml` (OLT + proxy) is also included for a

@@ -36,7 +36,7 @@ namespace de laboratorio.
 ```bash
 docker compose -f examples/docker-compose.yml up -d
 docker compose -f examples/docker-compose.yml logs --tail=100 olt
-ssh -p 2222 isadmin@localhost
+ssh -p 2222 admin@localhost
 ```
 
 Con la imagen recién construida arriba, verifica que los tres planos

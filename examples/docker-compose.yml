@@ -2,7 +2,7 @@
 # Enough to build a customization, boot it, and poke the eCLI:
 #
 #   docker compose -f examples/docker-compose.yml up -d
-#   ssh -p 2222 isadmin@localhost      # isadmin/isadmin
+#   ssh -p 2222 admin@localhost        # admin/admin
 #
 # For a full lab with a BNG, use examples/lab.clab.yml instead.
 services:

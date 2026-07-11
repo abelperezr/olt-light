@@ -12,6 +12,11 @@ Those artifacts are what makes Altiplano accept the emulator as a
 Lightspan, but they are not ours to redistribute as source: they live baked
 inside the images and are not published in any repository.
 
+**Vendor products and documentation are not distributed either.** The project
+and its images do not include Nokia Altiplano, Altiplano licenses, or the
+official Nokia Lightspan eCLI configuration guide. Compatibility with
+Altiplano does not mean the controller is part of the emulator.
+
 **This repository** contains only the behavior layer: eCLI, DHCP, optics
 and IPFIX. It's our own code, MIT licensed, and designed so you can modify
 it without ever approaching the boundary: nothing you edit here requires

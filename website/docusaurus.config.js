@@ -84,7 +84,7 @@ const config = {
           ],
         },
       ],
-      copyright: `Copyright © ${new Date().getFullYear()} Abel Perez · Built with Docusaurus`,
+      copyright: `Copyright © ${new Date().getFullYear()} Abel Perez and Eluzmar Alviarez · Built with Docusaurus`,
     },
     prism: {theme: lightCodeTheme, darkTheme: darkCodeTheme},
   },

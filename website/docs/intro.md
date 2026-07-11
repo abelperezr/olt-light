@@ -13,6 +13,11 @@ daemons de emulación para DHCP de ONUs, óptica e IPFIX. Se integra
 end-to-end con Nokia Altiplano Access Controller a través de un proxy
 NETCONF que acompaña a la imagen.
 
+Nokia Altiplano, sus licencias y la guía oficial de configuración del eCLI
+de Nokia Lightspan no forman parte del proyecto ni de las imágenes. Debes
+obtener cualquier software o documentación del fabricante por los canales
+correspondientes.
+
 Este repositorio es la **capa de personalización**: el emulador completo
 viene precompilado en las imágenes base, y aquí vive únicamente lo que
 puedes modificar sin romper el alineamiento con Altiplano:

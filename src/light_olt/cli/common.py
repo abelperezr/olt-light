@@ -48,8 +48,8 @@ COMMIT_POLL_SECONDS = float(os.environ.get("ECLI_COMMIT_POLL_SECONDS", "1.0"))
 SIG_CACHE_SECONDS = float(os.environ.get("ECLI_SIG_CACHE_SECONDS", "0.15"))
 XML_CACHE_MAX = int(os.environ.get("ECLI_XML_CACHE_MAX", "24"))
 
-# Ruta a sudo (para ejecutar sysrepo* como root cuando el eCLI corre como
-# usuario no privilegiado). Vacio si no existe -> se ejecuta directo.
+# Resolve sudo once. Plane uses it for sysrepo commands when the eCLI runs as
+# an unprivileged login user; an empty value means commands run directly.
 def _which(cmd):
     for d in os.environ.get("PATH", "/usr/bin:/bin").split(os.pathsep):
         p = os.path.join(d, cmd)
@@ -59,7 +59,7 @@ def _which(cmd):
 _SUDO = _which("sudo")
 
 # --------------------------------------------------------------------------
-# identidades conocidas  valor CLI -> namespace
+# Known identity values mapped to their XML namespaces.
 # --------------------------------------------------------------------------
 NS_NOKIA_HWI = ("http://www.nokia.com/Fixed-Networks/BBA/yang/"
                 "nokia-hardware-identities")
@@ -91,9 +91,8 @@ IDENTITY_NS = {
 IDENTITY_LEAVES = {"class", "type"}
 
 # --------------------------------------------------------------------------
-# Builtins implementados por el emulador. No anunciar comandos de la OLT real
-# que aqui no tienen ningun efecto: es preferible un error explicito a aceptar
-# silenciosamente configuracion inexistente.
+# Advertise only commands implemented by the emulator. An explicit error is
+# safer than silently accepting a real-device command that has no effect here.
 # --------------------------------------------------------------------------
 BUILTIN_OPER = {
     "config": "Manipulate software configuration information",
@@ -124,14 +123,16 @@ BUILTIN_CONFIG = {
 
 
 def run_ping(args, out):
-    """ping <destino> [count N] [size N] [source-address A] [interface IFC]
+    """Run the container's real ping command.
+
+    Syntax: ping <destination> [count N] [size N] [source-address A]
+                      [interface IFC]
                       [router-instance "Base"] [timeout S] [interval S]
 
-    Ejecuta el ping REAL del kernel del contenedor. Como ihub_net espeja la
-    config del IHUB (port admin-state, router "Base"/ies interfaces con IP)
-    en interfaces Linux, el ping sale de verdad por el uplink hacia los SROS
-    de containerlab. router-instance se acepta y se ignora (todo vive en el
-    netns del contenedor, equivalente a "Base").
+    ``ihub_net`` mirrors IHUB port and router-interface configuration onto
+    Linux interfaces, so packets leave through the container's actual uplink.
+    ``router-instance`` is accepted for CLI compatibility and ignored because
+    every interface lives in the same network namespace.
     """
     target = None
     count, size, source, iface, timeout, interval = "5", None, None, None, "2", None
@@ -152,7 +153,7 @@ def run_ping(args, out):
         elif a == "interval" and nxt:
             interval = nxt; i += 2
         elif a in ("router-instance", "router", "subscriber") and nxt:
-            i += 2                       # aceptado, sin efecto en el emulador
+            i += 2                       # Accepted for compatibility; no-op.
         elif target is None:
             target = a; i += 1
         else:

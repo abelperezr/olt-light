@@ -68,7 +68,7 @@ IHUB_ENV = dict(os.environ, SYSREPO_REPOSITORY_PATH="/repo/ihub",
 
 
 def lt_envs():
-    """[(plane_tag, env)] para /repo/lt y clones /repo/lt2..lt4 presentes."""
+    """Return environments for the primary LT and any runtime LT clones."""
     out = [("lt", LT_ENV)]
     for n in (2, 3, 4):
         repo = "/repo/lt%d" % n
@@ -175,10 +175,10 @@ def overrides():
 
 
 # ---------------------------------------------------------------------------
-# descubrimiento
+# Subscriber discovery.
 # ---------------------------------------------------------------------------
 def fpp_outer_vlans(env):
-    """{profile-name: outer-vlan} desde bbf-frame-processing-profile."""
+    """Map frame-processing profile names to their outer VLAN."""
     root = sr_export(env, "bbf-frame-processing-profile")
     out = {}
     if root is None:
@@ -199,12 +199,12 @@ def fpp_outer_vlans(env):
 
 
 def interface_outer_vlan(itf):
-    """VLAN de servicio configurada directamente en la sub-interfaz.
+    """Return the service VLAN configured directly on a subinterface.
 
-    Altiplano normalmente instancia perfiles con vlan-id parametrico y deja el
-    valor real en tag-0/tag-1 dentro de la interfaz del usuario. Ese valor debe
-    ganar sobre el profile para que cualquier VLAN creada por el usuario dispare
-    el DORA.
+    Altiplano commonly instantiates profiles with a parameterized VLAN ID and
+    stores the resolved value under tag-0/tag-1 on the subscriber interface.
+    The interface value takes precedence so any provisioned VLAN can trigger
+    DORA.
     """
     for tag_name in ("tag-0", "tag-1", "tag"):
         for tag in kids(itf, tag_name):
@@ -215,7 +215,7 @@ def interface_outer_vlan(itf):
 
 
 def ihub_vvpls_wire(pmap):
-    """{service-vlan: (iface_base, wire_vlan|None)} desde nokia-conf IHUB."""
+    """Map service VLANs to IHUB base interfaces and optional wire VLANs."""
     root = sr_export(IHUB_ENV, "nokia-conf")
     out = {}
     if root is None:
@@ -286,16 +286,16 @@ def mv_name(key):
 
 
 # ---------------------------------------------------------------------------
-# plumbing de red por suscriptor
+# Per-subscriber network plumbing.
 # ---------------------------------------------------------------------------
 def ensure_plumbing(sub):
-    """crea ethN.<wvlan> (si falta) y la macvlan del suscriptor. True si ok."""
+    """Create the wire VLAN and subscriber macvlan when needed."""
     base, wvlan = sub["base"], sub["wvlan"]
     parent = "%s.%s" % (base, wvlan)
     links = subprocess.run(["ip", "-o", "link"], capture_output=True,
                            text=True).stdout
     if ("%s@" % base) not in links and (" %s:" % base) not in links:
-        return False                      # el cable de containerlab no existe
+        return False                      # No containerlab link is attached.
     if (" %s@" % parent) not in links and (" %s:" % parent) not in links:
         sh(["ip", "link", "set", base, "up"])
         sh(["ip", "link", "add", "link", base, "name", parent,
@@ -306,7 +306,7 @@ def ensure_plumbing(sub):
         if sh(["ip", "link", "add", mv, "link", parent, "type", "macvlan",
                "mode", "bridge"]) != 0:
             return False
-        log("%s: macvlan %s sobre %s mac %s" %
+        log("%s: macvlan %s on %s, MAC %s" %
             (sub["key"], mv, parent, sub["mac"]))
     sh(["ip", "link", "set", mv, "address", sub["mac"]])
     sh(["ip", "link", "set", mv, "up"])
@@ -319,7 +319,7 @@ def teardown(key):
 
 
 # ---------------------------------------------------------------------------
-# DHCPv4 (DORA) sobre AF_PACKET
+# DHCPv4 DORA over AF_PACKET.
 # ---------------------------------------------------------------------------
 def csum(data):
     if len(data) % 2:
@@ -402,7 +402,7 @@ def parse_dhcp4(pkt, mac, xid):
 
 
 def dora(sub, stop):
-    """DORA completo; devuelve lease dict o None."""
+    """Run a complete DORA exchange and return the lease, if any."""
     try:
         s = socket.socket(socket.AF_PACKET, socket.SOCK_RAW,
                           socket.htons(ETH_P_IP))
@@ -456,7 +456,7 @@ def _wait4(s, sub, xid, want, want_opts=False):
 
 
 # ---------------------------------------------------------------------------
-# DHCPv6 (SARR) sobre UDP link-local
+# DHCPv6 SARR over link-local UDP.
 # ---------------------------------------------------------------------------
 def link_local(iface, timeout=10):
     end = time.time() + timeout
@@ -551,7 +551,7 @@ def sarr(sub, stop):
 
 
 # ---------------------------------------------------------------------------
-# ciclo de vida por suscriptor
+# Subscriber lifecycle.
 # ---------------------------------------------------------------------------
 def subscriber_thread(sub, stop):
     key, iface = sub["key"], sub["iface"]
@@ -577,7 +577,7 @@ def subscriber_thread(sub, stop):
                 t4 = now + max(lease["lease"] // 2, 60)
             else:
                 if l4:
-                    log("%s: DHCPv4 renew fallo; reintento" % key)
+                    log("%s: DHCPv4 renewal failed; retrying" % key)
                 t4 = now + 30
         if V6_ON and now >= t6:
             lease6 = sarr(sub, stop)
@@ -596,7 +596,7 @@ def subscriber_thread(sub, stop):
                 t6 = now + 45
         stop.wait(2)
     teardown(key)
-    log("%s: suscriptor retirado" % key)
+    log("%s: subscriber removed" % key)
 
 
 def main():

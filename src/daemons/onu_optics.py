@@ -52,8 +52,8 @@ import sys
 import time
 from pathlib import Path
 
-# Reutilizamos el inventario YA resuelto (con gate de autenticacion) del
-# exportador IPFIX, para no duplicar la logica de parseo de sysrepo.
+# Reuse the IPFIX exporter's resolved, authentication-gated inventory instead
+# of maintaining another sysrepo parser here.
 from ipfix_exporter import (
     InventoryCache,
     Onu,
@@ -80,7 +80,7 @@ def log(msg: str) -> None:
 
 
 def _stable_rng(onu: Onu) -> random.Random:
-    """RNG por-ONU deterministico (mismas potencias base entre reinicios)."""
+    """Build a deterministic per-ONU RNG that survives restarts."""
     base_seed = env_int("IPFIX_EMU_RANDOM_SEED", 20260614)
     key = (onu.serial or onu.name).encode("utf-8", "ignore")
     h = 0
@@ -90,10 +90,10 @@ def _stable_rng(onu: Onu) -> random.Random:
 
 
 def _diag_values(onu: Onu, tick: int) -> dict[str, int]:
-    """Genera el set de diagnosticos con base estable + jitter temporal.
+    """Generate stable diagnostic baselines with small time-based jitter.
 
-    Rangos GPON/XGS-PON realistas:
-      rx-power : -28 .. -8  dBm (planta tipica)
+    Realistic GPON/XGS-PON ranges:
+      rx-power : -28 .. -8  dBm (typical optical plant)
       tx-power : +0.5 .. +5 dBm
       tx-bias  : 5 .. 25 mA
       laser-temp: 35 .. 55 C
@@ -104,26 +104,26 @@ def _diag_values(onu: Onu, tick: int) -> dict[str, int]:
     bias_base = rng.uniform(7.0, 22.0)
     temp_base = rng.uniform(38.0, 52.0)
 
-    # jitter temporal suave (no rompe la correlacion con el serial)
+    # Gentle jitter preserves the stable correlation with the serial number.
     phase = (hash(onu.name) & 0xFF) / 40.0
     rx = rx_base + 0.6 * math.sin(tick / 5.0 + phase)
     tx = tx_base + 0.25 * math.sin(tick / 6.0 + phase)
     bias = bias_base + 0.8 * math.sin(tick / 4.0 + phase)
     temp = temp_base + 1.5 * math.sin(tick / 9.0 + phase)
 
-    # Conversion a unidades crudas que el cliente vuelve a escalar.
+    # Convert to the raw units expected by the client-side scaling code.
     # rx/tx-power-dbm : dBm*10 (optics_service divide /10)
-    # rx/tx-power     : 0.1 mW; el cliente divide /10 => guardamos mW*10.
+    # rx/tx-power     : 0.1 mW; the client divides by 10, so store mW*10.
     #                   mW = 10^(dBm/10).
     rx_mw = 10 ** (rx / 10.0)
     tx_mw = 10 ** (tx / 10.0)
     return {
         "rx_power_dbm": int(round(rx * 10)),
         "tx_power_dbm": int(round(tx * 10)),
-        "rx_power": int(round(rx_mw * 10)),       # cliente /10 => mW
+        "rx_power": int(round(rx_mw * 10)),       # Client /10 => mW.
         "tx_power": int(round(tx_mw * 10)),
-        "tx_bias": int(round(bias * 1000)),        # cliente /1000 => mA
-        "laser_temperature": int(round(temp * 100)),  # cliente /100 => C
+        "tx_bias": int(round(bias * 1000)),        # Client /1000 => mA.
+        "laser_temperature": int(round(temp * 100)),  # Client /100 => C.
     }
 
 
@@ -171,15 +171,14 @@ def write_and_push(xml: str) -> int:
     Path(OUT_PATH).parent.mkdir(parents=True, exist_ok=True)
     Path(OUT_PATH).write_text(xml)
     if not os.path.exists(OPER_PUSH):
-        log(f"oper_push no encontrado en {OPER_PUSH}; XML escrito en {OUT_PATH}")
+        log(f"oper_push not found at {OPER_PUSH}; wrote XML to {OUT_PATH}")
         return 0
     env = os.environ.copy()
     env.setdefault("SYSREPO_REPOSITORY_PATH", "/repo/lt")
     env.setdefault("SYSREPO_SHM_PREFIX", "lt_")
-    # oper_push se queda residente vigilando el mtime; aqui lo usamos en modo
-    # "aplicar y salir" relanzando en cada refresh para reflejar el jitter y
-    # la lista de ONUs autenticadas. Como oper_push vive mientras la sesion
-    # exista, lanzamos en background y matamos el anterior.
+    # oper_push stays resident and watches mtime. Relaunch it after each refresh
+    # so the operational data follows both the jitter and authenticated ONU
+    # inventory. The caller terminates the previous resident process.
     proc = subprocess.Popen(
         [OPER_PUSH, OUT_PATH], env=env,
         stdout=subprocess.DEVNULL, stderr=subprocess.PIPE,
@@ -189,7 +188,7 @@ def write_and_push(xml: str) -> int:
 
 def main() -> int:
     if not env_bool("ONU_OPTICS_ENABLED", True):
-        log("ONU_OPTICS_ENABLED=0; daemon de optics desactivado")
+        log("ONU_OPTICS_ENABLED=0; optics daemon disabled")
         return 0
 
     once = "--once" in sys.argv
@@ -205,15 +204,15 @@ def main() -> int:
     while True:
         inv = cache.get()
         xml = build_xml(inv.onus, tick)
-        # matar push anterior para soltar su sesion (los datos viejos
-        # desaparecen) y aplicar el set nuevo.
+        # End the previous push session so stale data disappears before the
+        # refreshed set is applied.
         if last_pid:
             try:
                 os.kill(last_pid, 15)
             except ProcessLookupError:
                 pass
         last_pid = write_and_push(xml)
-        log(f"publicados diagnosticos opticos para {len(inv.onus)} ONUs (tick={tick})")
+        log(f"published optical diagnostics for {len(inv.onus)} ONUs (tick={tick})")
         tick += 1
         if once:
             return 0

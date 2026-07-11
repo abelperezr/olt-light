@@ -13,6 +13,11 @@ emulador como un Lightspan, pero no son nuestros para redistribuir como
 fuente: viven horneados dentro de las imágenes y no se publican en ningún
 repositorio.
 
+**Tampoco se distribuyen productos ni documentación del fabricante.** El
+proyecto y sus imágenes no incluyen Nokia Altiplano, licencias de Altiplano ni
+la guía oficial de configuración del eCLI de Nokia Lightspan. La compatibilidad
+con Altiplano no implica que el controlador forme parte del emulador.
+
 **Este repositorio** contiene solo la capa de comportamiento: eCLI, DHCP,
 óptica e IPFIX. Es código propio, con licencia MIT, y está diseñado para
 que puedas modificarlo sin acercarte al límite: nada de lo que edites aquí

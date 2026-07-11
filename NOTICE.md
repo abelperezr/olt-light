@@ -3,6 +3,8 @@
 This repository contains only the user-customizable overlay for Light OLT.
 It does not contain Nokia YANG modules, device extensions, seed data,
 precompiled sysrepo repositories, capability allowlists, or proxy source.
+It also does not include Nokia Altiplano software or licenses, the official
+Nokia Lightspan eCLI configuration guide, or any other vendor documentation.
 
 The base images are separate artifacts:
 

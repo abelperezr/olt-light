@@ -38,12 +38,11 @@ def strip_ns(tag):
 
 
 def segs_exist_in_running(plane, segs):
-    """True si la ruta (lista de PathSeg) ya existe en running.
+    """Return whether a resolved path already exists in running.
 
-    Se usa para NO ensuciar la sesion al navegar a contextos existentes
-    (ej. 'router Base' en el IHUB): resolve() genera un ("create", path)
-    tambien para navegacion pura, pero el MD-CLI/ConfD real no marca '*'
-    si el nodo ya existe.
+    ``resolve()`` emits a create action even when a user is merely entering an
+    existing context such as ``router Base``. Ignoring that action keeps the
+    candidate clean and avoids showing a false dirty marker in the prompt.
     """
     if not segs:
         return True
@@ -76,7 +75,7 @@ def _is_leaf(el):
 def _clean_val(v):
     v = (v or "").strip()
     if ":" in v and re.match(r"^[\w.-]+:[\w.-]+$", v):
-        return v.split(":", 1)[1]    # identityref sin prefijo
+        return v.split(":", 1)[1]    # Display identityrefs without prefixes.
     return v
 
 
@@ -113,10 +112,10 @@ def xml_matches_keys(el, keys):
 
 
 def xml_path_elements(roots, path_names, path_keys=None):
-    """Elementos que matchean una ruta YANG por nombre local.
+    """Find elements along a YANG path by local name.
 
-    path_keys permite filtrar listas ancestro ya resueltas, por ejemplo
-    {1: {"name": "ONT-001"}} para onus/onu/root/... .
+    ``path_keys`` filters resolved ancestor lists. For example,
+    ``{1: {"name": "ONT-001"}}`` selects one ONU below ``onus/onu``.
     """
     if not path_names:
         return []
@@ -149,8 +148,7 @@ KEYISH = ("name", "id", "slot-number", "mda-slot", "port-id", "service-name",
 
 
 def render_confd(el, prefix, depth, out):
-    """estilo ConfD J: cadenas de un hijo en linea plana; bloques con
-    sangria que cierran con '!'"""
+    """Render ConfD J-style output with inline chains and ``!`` blocks."""
     name = strip_ns(el.tag)
     kids = list(el)
     if not kids:
@@ -168,7 +166,7 @@ def render_confd(el, prefix, depth, out):
         header += " " + mq(_clean_val(first.text))
         consumed.append(first)
     out.append(" " * depth + header)
-    # leaf-lists agrupadas como [ a b c ]
+    # Group repeated leaf-list values as ``[ a b c ]``.
     seen_ll = set()
     for k in kids:
         if k in consumed:
@@ -187,8 +185,10 @@ def render_confd(el, prefix, depth, out):
 
 
 def render_md_flat(el, path, out, inode):
-    """nokia-conf -> 'head { resto }' como info flat. inode = nodo del
-    indice de esquema (para distinguir listas/claves y tipos string)."""
+    """Render nokia-conf XML as flat ``head { remainder }`` output.
+
+    ``inode`` is the schema node used to identify lists, keys, and strings.
+    """
     name = strip_ns(el.tag)
     kids = list(el)
     if not kids:
