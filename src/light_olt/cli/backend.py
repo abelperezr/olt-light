@@ -122,6 +122,9 @@ FALLBACK_NS = {
     # are never serialized without their namespace.
     "bbf-hw-ext": "urn:bbf:yang:bbf-hardware-extension",
     "bbf-hardware-extension": "urn:bbf:yang:bbf-hardware-extension",
+    "bbf-qos-tm": "urn:bbf:yang:bbf-qos-traffic-mngt",
+    "nokia-mcast-cac": ("uri:http://www.nokia.com/Fixed-Networks/BBA/yang/"
+                         "nokia-multicast-cac"),
     "bbf-xpon": "urn:bbf:yang:bbf-xpon",
     "bbf-xpongemtcont": "urn:bbf:yang:bbf-xpongemtcont",
     "bbf-qos-traffic-mngt": "urn:bbf:yang:bbf-qos-traffic-mngt",
@@ -131,6 +134,31 @@ FALLBACK_NS = {
         "http://www.nokia.com/Fixed-Networks/BBA/yang/onus-from-template",
     "nokia-conf": "urn:nokia.com:sros:ns:yang:sr:conf",
 }
+
+
+def schema_prefix_aliases(yangdir, namespaces):
+    """Map each module's declared YANG prefix to its known namespace."""
+    aliases = {}
+    try:
+        names = os.listdir(yangdir)
+    except OSError:
+        return aliases
+    for filename in names:
+        if not filename.endswith(".yang"):
+            continue
+        try:
+            with open(os.path.join(yangdir, filename), errors="replace") as src:
+                body = src.read(4096)
+        except OSError:
+            continue
+        module = re.search(r'^\s*module\s+"?([\w.-]+)"?\s*\{', body, re.M)
+        prefix = re.search(r'^\s*prefix\s+"?([\w.-]+)"?\s*;', body, re.M)
+        if not (module and prefix):
+            continue
+        namespace = namespaces.get(module.group(1))
+        if namespace:
+            aliases[prefix.group(1)] = namespace
+    return aliases
 
 
 def _merge_index(curated, gen):
@@ -291,6 +319,12 @@ class Plane:
         except Exception:
             self._ns = dict(FALLBACK_NS)
             self._desc = {}
+        # Older base images indexed module names but not the prefixes emitted
+        # by ``yanglint -f tree`` for augments. Recover every alias directly
+        # from the installed schemas so this overlay fixes more than a static
+        # list of known modules.
+        self._ns.update(schema_prefix_aliases(
+            os.path.join(self.repo, "yang"), self._ns))
         # Mounted Lightspan schemas can make yanglint stop after emitting a
         # partial index. Merge in the curated tree so paths such as
         # ``onus onu <X>`` and ``interfaces interface <Y>`` retain list keys.
