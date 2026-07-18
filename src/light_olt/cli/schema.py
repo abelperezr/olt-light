@@ -27,6 +27,27 @@ Functions
   None if not at a list key position.
 """
 
+import re
+
+
+CURATED_VALUE_OPTIONS = {
+    ("bbf-xpon", "authentication-method"): (
+        "serial-number", "registration-id", "as-per-v-ani-expected", "loid",
+    ),
+    ("bbf-xpon", "channel-pair-type"): (
+        "fiftyg-twdm", "fiftyg-tdm", "twentyfivegs", "ngpon2-twdm",
+        "ngpon2-ptp", "xgs", "xgpon", "gpon",
+    ),
+    ("nokia-mcast-cac", "max-group-number"): ("no-limit",),
+    ("nokia-mcast-cac", "max-multicast-rate-limit"): ("no-limit",),
+    ("nokia-mcast-cac", "multicast-rate-limit-exceed-action"):
+        ("drop", "best-effort"),
+}
+
+UINT_OR_NO_LIMIT_LEAVES = {
+    "max-group-number", "max-multicast-rate-limit",
+}
+
 class PathSeg:
     __slots__ = ("name", "module", "keys", "node")
 
@@ -55,9 +76,59 @@ def lookup(node, token):
         return pref[0], ch[pref[0]]
     if len(pref) > 1:
         raise ResolveError(-1, "ambiguous", sorted(pref))
-    if node.get("loose"):
+    # ``loose`` is a fallback for genuinely missing mounted schemas. Once
+    # yanglint supplied real children, accepting arbitrary names creates fake
+    # configuration contexts such as ``tm-root COMM``.
+    if node.get("loose") and not ch:
         return token, {"k": "c", "m": node.get("m"), "c": {}, "loose": 1}
     return None, None
+
+
+def leaf_value_options(name, node):
+    """Return CLI values known for a leaf, or ``None`` for free-form input."""
+    indexed = node.get("v")
+    if indexed:
+        return tuple(indexed)
+    if (node.get("t") or "").lower().startswith("boolean"):
+        return ("false", "true")
+    return CURATED_VALUE_OPTIONS.get((node.get("m"), name))
+
+
+def _validate_leaf_value(name, node, value, pos):
+    options = leaf_value_options(name, node)
+    if options is None or value in options:
+        return
+    if name in UINT_OR_NO_LIMIT_LEAVES and re.fullmatch(r"[0-9]+", value):
+        return
+    raise ResolveError(pos, "invalid value", list(options))
+
+
+def schema_value_options(plane, base, tokens):
+    """Return value completions when ``tokens`` ends at a leaf name."""
+    node = base[-1].node if base else {"c": plane.index, "k": "c"}
+    i = 0
+    while i < len(tokens):
+        try:
+            real, child = lookup(node, tokens[i])
+        except ResolveError:
+            return None
+        if child is None:
+            return None
+        kind = child.get("k", "c")
+        if kind == "l":
+            i += 1 + len(child.get("keys", []))
+            if i > len(tokens):
+                return None
+            node = child
+            continue
+        if kind == "c":
+            node = child
+            i += 1
+            continue
+        if kind in ("f", "F") and i == len(tokens) - 1:
+            return leaf_value_options(real, child)
+        return None
+    return None
 
 
 def resolve(plane, ctx_segs, tokens):
@@ -122,9 +193,15 @@ def resolve(plane, ctx_segs, tokens):
             else:
                 if i < len(tokens):
                     val = tokens[i]
+                    _validate_leaf_value(real, ch, val, i)
                 else:
-                    val = "true"   # A valueless boolean leaf means enabled.
-                    i -= 1
+                    if (ch.get("t") or "").lower().startswith("boolean"):
+                        val = "true"   # A valueless boolean means enabled.
+                        i -= 1
+                    else:
+                        options = leaf_value_options(real, ch) or ()
+                        raise ResolveError(i - 1, "incomplete command",
+                                           list(options))
                 actions.append(("set", list(segs), leafseg, val))
         i += 1
     if remove and len(segs) > len(ctx_segs):
