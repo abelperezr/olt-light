@@ -63,6 +63,7 @@ _SUDO = _which("sudo")
 # --------------------------------------------------------------------------
 NS_NOKIA_HWI = ("http://www.nokia.com/Fixed-Networks/BBA/yang/"
                 "nokia-hardware-identities")
+NS_BBF_XPON_TYPES = "urn:bbf:yang:bbf-xpon-types"
 IDENTITY_NS = {
     "chassis": "urn:ietf:params:xml:ns:yang:iana-hardware",
     "container": "urn:ietf:params:xml:ns:yang:iana-hardware",
@@ -87,8 +88,16 @@ IDENTITY_NS = {
     "onu-v-enet": "urn:bbf:yang:bbf-xpon-if-type",
     "vlan-sub-interface": "urn:bbf:yang:bbf-if-type",
     "ethernetCsmacd": "urn:ietf:params:xml:ns:yang:iana-if-type",
+    "fiftyg-twdm": NS_BBF_XPON_TYPES,
+    "fiftyg-tdm": NS_BBF_XPON_TYPES,
+    "twentyfivegs": NS_BBF_XPON_TYPES,
+    "ngpon2-twdm": NS_BBF_XPON_TYPES,
+    "ngpon2-ptp": NS_BBF_XPON_TYPES,
+    "xgs": NS_BBF_XPON_TYPES,
+    "xgpon": NS_BBF_XPON_TYPES,
+    "gpon": NS_BBF_XPON_TYPES,
 }
-IDENTITY_LEAVES = {"class", "type"}
+IDENTITY_LEAVES = {"class", "type", "channel-pair-type"}
 
 # --------------------------------------------------------------------------
 # Advertise only commands implemented by the emulator. An explicit error is
