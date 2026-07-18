@@ -117,6 +117,11 @@ FALLBACK_NS = {
     "ietf-interfaces": "urn:ietf:params:xml:ns:yang:ietf-interfaces",
     "ietf-hardware": "urn:ietf:params:xml:ns:yang:ietf-hardware",
     "ietf-system": "urn:ietf:params:xml:ns:yang:ietf-system",
+    # yanglint uses the augment's YANG prefix in its compiled tree instead of
+    # the full module name in some paths. Keep both forms so augmented leaves
+    # are never serialized without their namespace.
+    "bbf-hw-ext": "urn:bbf:yang:bbf-hardware-extension",
+    "bbf-hardware-extension": "urn:bbf:yang:bbf-hardware-extension",
     "bbf-xpon": "urn:bbf:yang:bbf-xpon",
     "bbf-xpongemtcont": "urn:bbf:yang:bbf-xpongemtcont",
     "bbf-qos-traffic-mngt": "urn:bbf:yang:bbf-qos-traffic-mngt",
@@ -179,7 +184,7 @@ def fallback_tree(plane):
                 "parent": leaf("ietf-hardware"),
                 "parent-rel-pos": leaf("ietf-hardware", "int32"),
                 "mfg-name": leaf("ietf-hardware"),
-                "model-name": leaf("ietf-hardware"),
+                "model-name": leaf("bbf-hardware-extension"),
                 "serial-num": leaf("ietf-hardware"),
             }}}},
     }
