@@ -1,0 +1,1416 @@
+{
+  "info": {
+    "_postman_id": "b39686fd-c7b8-4671-96f3-05ccee09c0ef",
+    "name": "Altiplano CLAB DEMO",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
+    "_exporter_id": "27331288"
+  },
+  "item": [
+    {
+      "name": "CLAB GPON/XGS",
+      "item": [
+        {
+          "name": "av",
+          "item": [
+            {
+              "name": "GetAccessTokenAV",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.environment.set(\"access-token\", pm.response.json().accessToken);",
+                      "pm.environment.set(\"refresh-token\", pm.response.json().refreshToken);",
+                      "pm.globals.set(\"access-token\", pm.response.json().accessToken);",
+                      "pm.globals.set(\"refresh-token\", pm.response.json().refreshToken);"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "basic",
+                  "basic": [
+                    {
+                      "key": "password",
+                      "value": "{{password}}",
+                      "type": "string"
+                    },
+                    {
+                      "key": "username",
+                      "value": "{{username}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [],
+                "body": {
+                  "mode": "raw",
+                  "raw": ""
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/nokia-altiplano-av/rest/auth/login",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "nokia-altiplano-av",
+                    "rest",
+                    "auth",
+                    "login"
+                  ]
+                },
+                "description": "Get Access Token and Refresh Token by Login method before executing any other RESTCONF request."
+              },
+              "response": []
+            },
+            {
+              "name": "shelf",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"anv-device-holders:device\": [\r\n    {\r\n        \"device-id\": \"SHELF-FX\",\r\n        \"hardware-type\": \"LS-FX-FANT-G-FX4\", \r\n        \"interface-version\": \"25.12\",\r\n        \"push-nav-configuration-to-device\": false, \r\n        \"configured-device-properties\":\r\n        {\r\n        \"ip-address\": \"172.30.30.5\",\r\n        \"ip-port\": \"832\",\r\n        \"transport-protocol\": \"ssh\",\r\n        \"pma-authentication-method\": \"username-and-password\",\r\n        \"username\": \"admin\",\r\n        \"password\": \"admin\"\r\n        }\r\n    }\r\n    ]\r\n}"
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/nokia-altiplano-av/rest/restconf/data/anv:device-manager",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "nokia-altiplano-av",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "anv:device-manager"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "ihub",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"anv-device-holders:device\": [\r\n    {\r\n        \"device-id\": \"IHUB-FX\",\r\n        \"hardware-type\": \"LS-FX-IHUB-FANT-G-FX4\",  \r\n        \"interface-version\": \"25.12\",\r\n        \"push-nav-configuration-to-device\": false,\r\n        \"configured-device-properties\":\r\n        {\r\n        \"ip-address\": \"172.30.30.5\",\r\n        \"ip-port\": \"831\",\r\n        \"transport-protocol\": \"ssh\",\r\n        \"pma-authentication-method\": \"username-and-password\",\r\n        \"username\": \"admin\",\r\n        \"password\": \"admin\"\r\n        }\r\n    }\r\n    ]\r\n}"
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/nokia-altiplano-av/rest/restconf/data/anv:device-manager",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "nokia-altiplano-av",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "anv:device-manager"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "general",
+          "item": [
+            {
+              "name": "device-fx 4 LT",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"ibn:intent\": {\r\n    \"target\": \"OLT-02\",\r\n    \"intent-type\": \"device-fx\",\r\n    \"intent-specific-data\": {\r\n      \"device-fx:device-fx\": {\r\n        \"device-manager\": \"virtualizer\",\r\n        \"hardware-type\": \"LS-FX-FANT-G-FX4\",\r\n        \"device-version\": \"25.12\",\r\n        \"device-template\": \"SHELF\",\r\n        \"ihub-device-template\": \"IHUB\",\r\n        \"push-nav-configuration-to-device\": true,\r\n        \"timezone-name\": \"America/Mexico_City\",\r\n        \"ip-address\": \"172.30.30.11\",\r\n        \"ip-port\": \"832\",\r\n        \"transport-protocol\": \"ssh\",\r\n        \"username\": \"admin\",\r\n        \"password\": \"admin\",\r\n        \"boards\": [\r\n          {\r\n            \"planned-type\": \"FANT-G\",\r\n            \"slot-name\": \"NTA\",\r\n            \"host-id\": \"not-configured\"\r\n          },\r\n          {\r\n            \"slot-name\": \"LT1\",\r\n            \"planned-type\": \"FGLT-D\",\r\n            \"device-version\": \"25.12\",\r\n            \"board-service-profile\": \"Embedded-ONT\",\r\n            \"host-id\": \"not-configured\",\r\n            \"passive-device-version\": \"25.12\"\r\n          },\r\n          {\r\n            \"slot-name\": \"LT2\",\r\n            \"planned-type\": \"FWLT-C\",\r\n            \"device-version\": \"25.12\",\r\n            \"board-service-profile\": \"Embedded-ONT\",\r\n            \"host-id\": \"not-configured\",\r\n            \"passive-device-version\": \"25.12\"\r\n          },\r\n          {\r\n            \"slot-name\": \"LT3\",\r\n            \"planned-type\": \"FWLT-C\",\r\n            \"device-version\": \"25.12\",\r\n            \"board-service-profile\": \"Embedded-ONT\",\r\n            \"host-id\": \"not-configured\",\r\n            \"passive-device-version\": \"25.12\"\r\n          },\r\n          {\r\n            \"slot-name\": \"LT4\",\r\n            \"planned-type\": \"FWLT-C\",\r\n            \"device-version\": \"25.12\",\r\n            \"board-service-profile\": \"Embedded-ONT\",\r\n            \"host-id\": \"not-configured\",\r\n            \"passive-device-version\": \"25.12\"\r\n          }\r\n        ]\r\n      }\r\n    },\r\n    \"intent-type-version\": \"11\",\r\n    \"required-network-state\": \"active\"\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "device-config-fx",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{    \"ibn:intent\": {\r\n        \"target\": \"OLT-02\",\r\n        \"intent-type\": \"device-config-fx\",\r\n        \"intent-specific-data\": {\r\n        \"device-config-fx:device-config-fx\": {\r\n            \"access-node-id\": \"access-node-not-configured\",\r\n            \"ntp-server-profile\": \"NTP_Google\"\r\n        }\r\n        },\r\n        \"intent-type-version\": \"16\",\r\n        \"required-network-state\": \"active\"\r\n    }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "uplink-connection",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n        \"ibn:intent\": {\r\n            \"target\": \"OLT-02\",\r\n            \"intent-type\": \"uplink-connection\",\r\n            \"intent-specific-data\": {\r\n                \"uplink-connection:uplink-connection\": {\r\n                    \"connector-port-profile\": \"\",\r\n                    \"uplink-ports\": [\r\n                        {\r\n                            \"port-id\": \"nt-a:eth:1\",\r\n                            \"l1-profile\": \"Negotiation-1Gbps\"\r\n                        }\r\n                    ]\r\n                }\r\n            },\r\n            \"intent-type-version\": \"13\",\r\n            \"required-network-state\": \"active\"\r\n        }\r\n    }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "l2-infra",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n            \"ibn:intent\": {\r\n                \"target\": \"OLT-02#HSI\",\r\n                \"intent-type\": \"l2-infra\",\r\n                \"intent-specific-data\": {\r\n                    \"l2-infra:l2-infra\": {\r\n                        \"nni-id\": \"nt-a:eth:1\",\r\n                        \"none\": [null],\r\n                        \"c-vlan-id\": \"10\",\r\n                        \"forwarder-profile\": \"Unicast\",\r\n                        \"service-profile\": \"Unicast\",\r\n                        \"vlan-mode\": \"residential-bridge\"\r\n                    }\r\n                },\r\n                \"intent-type-version\": \"14\",\r\n                \"required-network-state\": \"active\"\r\n            }\r\n    }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "gpon",
+          "item": [
+            {
+              "name": "fiber GPON",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n        \"ibn:intent\": {\r\n            \"target\": \"LT1_PON1\",\r\n            \"intent-type\": \"fiber\",\r\n            \"intent-specific-data\": {\r\n            \"fiber:fiber\": {\r\n                \"xpon-type\": \"gpon\",\r\n                \"pon-port\": [\r\n                {\r\n                    \"device-name\": \"OLT-02\",\r\n                    \"pon-id\": \"LT1.PON1\",\r\n                    \"model-name\": \"GPON SFP C+ (I-temp) OLT (3FE53441BC)\",\r\n                    \"wavelength-profile\": \"auto\",\r\n                    \"line-rate\": \"auto\"\r\n                }\r\n                ]\r\n            }\r\n            },\r\n            \"intent-type-version\": \"12\",\r\n            \"required-network-state\": \"active\"\r\n        }\r\n    }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "ont GPON",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"ibn:intent\": {\r\n    \"target\": \"ONT-01\",\r\n    \"intent-type\": \"ont\",\r\n    \"intent-specific-data\": {\r\n      \"ont:ont\": {\r\n        \"ont-type\": \"GENERIC_NOKIA\",\r\n        \"from-device-mapping\": [null],\r\n        \"onu-service-profile\": \"ont_default\",\r\n        \"pon-type\": \"gpon\",\r\n        \"expected-serial-number\": \"ALCL00000002\",\r\n        \"uni-service-configuration\": [\r\n          {\r\n            \"service-profile\": \"default-by-l2-user\",\r\n            \"uni-id\": \"VEIP\"\r\n          }\r\n        ],\r\n        \"fiber-name\": \"LT1_PON1\"\r\n      }\r\n    },\r\n    \"intent-type-version\": \"12\",\r\n    \"required-network-state\": \"active\"\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "l2-user GPON",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:intent\": {\r\n        \"target\": \"HSI#ONT-01\",\r\n        \"intent-type\": \"l2-user\",\r\n        \"intent-specific-data\": {\r\n            \"l2-user:l2-user\": {\r\n                \"l2-infra\": \"HSI\",\r\n                \"service-profile\": \"INTERNET_TC0\",\r\n                \"speed-profile\": \"PLAN_100M\",\r\n                \"user-device-name\": \"ONT-01\",\r\n                \"customer-id\": \"ONT-01\",\r\n                \"q-vlan-id\": 10,\r\n                \"uni-id\": \"VEIP\"\r\n            }\r\n        },\r\n        \"intent-type-version\": \"15\",\r\n        \"required-network-state\": \"active\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "xgs",
+          "item": [
+            {
+              "name": "fiber MPM-XGS",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n        \"ibn:intent\": {\r\n            \"target\": \"LT2_PON1\",\r\n            \"intent-type\": \"fiber\",\r\n            \"intent-specific-data\": {\r\n            \"fiber:fiber\": {\r\n                \"xpon-type\": \"mpm-gpon-xgs\",\r\n                \"pon-port\": [\r\n                {\r\n                    \"device-name\": \"OLT-02\",\r\n                    \"pon-id\": \"LT2.PON1\",\r\n                    \"model-name\": \"XGS/GPON SFP-DD C++ (I-temp) OLT MPM GEN2 (3FE47581CM)\",\r\n                    \"wavelength-profile\": \"auto\",\r\n                    \"line-rate\": \"auto\"\r\n                }\r\n                ]\r\n            }\r\n            },\r\n            \"intent-type-version\": \"12\",\r\n            \"required-network-state\": \"active\"\r\n        }\r\n    }",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "ont XGS",
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n  \"ibn:intent\": {\r\n    \"target\": \"XGS-001\",\r\n    \"intent-type\": \"ont\",\r\n    \"intent-specific-data\": {\r\n      \"ont:ont\": {\r\n        \"ont-type\": \"XGSPON-NOKIA\",\r\n        \"from-device-mapping\": [null],\r\n        \"onu-service-profile\": \"ont_default\",\r\n        \"pon-type\": \"gpon\",\r\n        \"expected-serial-number\": \"ALCL00000041\",\r\n        \"uni-service-configuration\": [\r\n          {\r\n            \"service-profile\": \"default-by-l2-user\",\r\n            \"uni-id\": \"VEIP\"\r\n          }\r\n        ],\r\n        \"fiber-name\": \"LT2_PON1\"\r\n      }\r\n    },\r\n    \"intent-type-version\": \"12\",\r\n    \"required-network-state\": \"active\"\r\n  }\r\n}",
+                  "options": {
+                    "raw": {
+                      "language": "json"
+                    }
+                  }
+                },
+                "url": {
+                  "raw": "https://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "https",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "l2-user XGS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:intent\": {\r\n        \"target\": \"HSI#XGS-001\",\r\n        \"intent-type\": \"l2-user\",\r\n        \"intent-specific-data\": {\r\n            \"l2-user:l2-user\": {\r\n                \"l2-infra\": \"HSI\",\r\n                \"service-profile\": \"INTERNET_TC0\",\r\n                \"speed-profile\": \"PLAN_100M\",\r\n                \"user-device-name\": \"XGS-001\",\r\n                \"customer-id\": \"XGS-001\",\r\n                \"q-vlan-id\": 10,\r\n                \"uni-id\": \"VEIP\"\r\n            }\r\n        },\r\n        \"intent-type-version\": \"15\",\r\n        \"required-network-state\": \"active\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/data/ibn:ibn?altiplano-triggerSyncUponSuccess=true",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "data",
+                    "ibn:ibn"
+                  ],
+                  "query": [
+                    {
+                      "key": "altiplano-triggerSyncUponSuccess",
+                      "value": "true"
+                    }
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "delete-all",
+          "item": [
+            {
+              "name": "l2-user GPON",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"l2-user\",\r\n        \"target\": \"HSI#ONT-01\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "ont GPON",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"ont\",\r\n        \"target\": \"ONT-01\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "l2-infra",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"l2-infra\",\r\n        \"target\": \"OLT-02#HSI\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "uplink-connection",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"uplink-connection\",\r\n        \"target\": \"OLT-02\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "fiber GPON",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"fiber\",\r\n        \"target\": \"LT1_PON1\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "fiber XGS",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"fiber\",\r\n        \"target\": \"LT2_PON1\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "device-config-fx",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"device-config-fx\",\r\n        \"target\": \"OLT-02\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            },
+            {
+              "name": "device-fx",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "pm.test(\"Status code is 201\", function () {\r",
+                      "    pm.response.to.have.status(201);\r",
+                      "});"
+                    ],
+                    "type": "text/javascript",
+                    "packages": {},
+                    "requests": {}
+                  }
+                }
+              ],
+              "protocolProfileBehavior": {
+                "strictSSL": false
+              },
+              "request": {
+                "auth": {
+                  "type": "bearer",
+                  "bearer": [
+                    {
+                      "key": "token",
+                      "value": "{{access-token}}",
+                      "type": "string"
+                    }
+                  ]
+                },
+                "method": "POST",
+                "header": [
+                  {
+                    "key": "Accept",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  },
+                  {
+                    "key": "Content-Type",
+                    "value": "application/yang-data+json",
+                    "type": "text"
+                  }
+                ],
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\r\n    \"ibn:delete-intent-from-network-and-controller\": {\r\n        \"intent-type\": \"device-fx\",\r\n        \"target\": \"OLT-02\"\r\n    }\r\n}"
+                },
+                "url": {
+                  "raw": "{{protocol}}://{{server-ip}}/{{base-url}}/rest/restconf/operations/ibn:delete-intent-from-network-and-controller",
+                  "protocol": "{{protocol}}",
+                  "host": [
+                    "{{server-ip}}"
+                  ],
+                  "path": [
+                    "{{base-url}}",
+                    "rest",
+                    "restconf",
+                    "operations",
+                    "ibn:delete-intent-from-network-and-controller"
+                  ]
+                }
+              },
+              "response": []
+            }
+          ]
+        },
+        {
+          "name": "GetAccessTokenIBN",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.environment.set(\"access-token\", pm.response.json().accessToken);",
+                  "pm.environment.set(\"refresh-token\", pm.response.json().refreshToken);",
+                  "pm.globals.set(\"access-token\", pm.response.json().accessToken);",
+                  "pm.globals.set(\"refresh-token\", pm.response.json().refreshToken);"
+                ],
+                "type": "text/javascript",
+                "packages": {},
+                "requests": {}
+              }
+            }
+          ],
+          "protocolProfileBehavior": {
+            "strictSSL": false
+          },
+          "request": {
+            "auth": {
+              "type": "basic",
+              "basic": [
+                {
+                  "key": "password",
+                  "value": "{{password}}",
+                  "type": "string"
+                },
+                {
+                  "key": "username",
+                  "value": "{{username}}",
+                  "type": "string"
+                }
+              ]
+            },
+            "method": "POST",
+            "header": [],
+            "body": {
+              "mode": "raw",
+              "raw": ""
+            },
+            "url": {
+              "raw": "{{protocolo}}://{{server-ip}}/{{base-url}}/rest/auth/login",
+              "protocol": "{{protocolo}}",
+              "host": [
+                "{{server-ip}}"
+              ],
+              "path": [
+                "{{base-url}}",
+                "rest",
+                "auth",
+                "login"
+              ]
+            },
+            "description": "Get Access Token and Refresh Token by Login method before executing any other RESTCONF request."
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}
