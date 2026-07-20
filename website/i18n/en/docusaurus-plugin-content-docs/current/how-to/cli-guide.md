@@ -16,13 +16,9 @@ This guide is for operators who manage Light OLT directly through the eCLI, with
 
 :::
 
-Connect with either default credential set:
+Connect with the default credentials:
 
 ```bash title="SSH connection"
-ssh isadmin@<olt-address>
-# Password: isadmin
-
-# Alternative
 ssh admin@<olt-address>
 # Password: admin
 ```
@@ -43,12 +39,13 @@ Not every operation has been validated through the eCLI. The code is public and 
 4. [Inspect the uplink ports](#inspect-the-uplink-ports).
 5. [Inspect the management VPLS](#inspect-the-management-vpls).
 6. [Inspect the management IES](#inspect-the-management-ies).
-7. [Configure a PON port](#configure-a-pon-port).
-8. [Create the ONU template](#create-the-onu-template).
-9. [Provision an ONT](#provision-an-ont).
-10. [Create the service profiles](#create-the-service-profiles).
-11. [Create the Layer 2 user service](#create-the-layer-2-user-service).
-12. [Apply the complete configuration example](#complete-configuration-example).
+7. [Create the v-VPLS for the ONT VLAN](#create-the-v-vpls-for-the-ont-vlan).
+8. [Configure a PON port](#configure-a-pon-port).
+9. [Create the ONU template](#create-the-onu-template).
+10. [Provision an ONT](#provision-an-ont).
+11. [Create the service profiles](#create-the-service-profiles).
+12. [Create the Layer 2 user service](#create-the-layer-2-user-service).
+13. [Apply the complete configuration example](#complete-configuration-example).
 
 ## Inspect a context configuration
 
@@ -264,6 +261,73 @@ A:admin@iHUB-OLT-LAB# info flat
     interface "to_BNG" { ipv4 dhcp lease-populate max-leases 20480 }
     ingress { }
     ingress { qos 1 }
+```
+
+## Create the v-VPLS for the ONT VLAN
+
+The `onu-dhcp` daemon only materializes a subscriber when the VLAN of its VSI matches an enabled v-VPLS in the IHUB. The v-VPLS must also have an enabled SAP on a physical port included in the uplink map. In this example, port `1/2/1` maps to `eth1` and the subscriber VLAN is `10`.
+
+```text title="Traffic flow"
+VSI_ONT-01_VEIP_HSI (VLAN 10)
+             │
+             ▼
+onu-dhcp detects the enabled VSI
+             │
+             ▼
+IHUB v-VPLS VLAN 10 → SAP 1/2/1:10
+             │
+             ▼
+Linux interface eth1.10 + subscriber macvlan
+             │
+             ▼
+DHCP DORA toward the BNG
+             │
+             ▼
+BNG receives the request
+```
+
+Run these commands in the **IHUB** context under `configure global`:
+
+```text title="Commands"
+forward cli to ihub
+configure global
+service vpls 10
+admin-state enable
+service-name "10"
+service-id 10
+customer 1
+admin-state enable
+storm-control false
+user-user-com false
+v-vpls true
+vlan 10
+sap 1/2/1:10 admin-state enable
+exit
+mac-move allow-res-res false
+mac-move allow-res-reg true
+mac-move allow-reg-res false
+commit
+```
+
+The `info flat` output must include:
+
+```text title="Verification output"
+[gl:configure service vpls 10]
+A:admin@iHUB-OLT-LAB# info flat
+    service-name "10" { }
+    service-id 10 { }
+    customer "1" { }
+    admin-state { enable }
+    storm-control { false }
+    user-user-com { false }
+    v-vpls { true }
+    vlan 10 { }
+    sap 1/2/1:10 { }
+    sap 1/2/1:10 { admin-state enable }
+    mac-move { }
+    mac-move { allow-res-res false }
+    mac-move { allow-res-reg true }
+    mac-move { allow-reg-res false }
 ```
 
 ## Configure a PON port
@@ -2304,7 +2368,7 @@ onu ONT-01
 
 ## Complete configuration example
 
-This block combines every profile and object required to create an ONT using the names and values from `example/lab.clab.yml`. Before pasting it, review and replace at least the LT context, serial number, VLAN, identifiers, and bandwidth.
+This block combines every profile and object required to create an ONT using the names and values from the example lab.
 
 ```text title="Commands"
 forward cli to lt-1
@@ -3037,5 +3101,28 @@ template-parameters interfaces interface template-ref ENET_VEIP admin true
 template-parameters interfaces interface template-ref VSI_VEIP_HSI pm-enable false vsi ingress-rule single-tagged match-criteria-tag-0-vlan-id 10 ingress-rewrite-tag-0-vlan-id 10
 exit
 template-parameters interfaces interface template-ref VSI_VEIP_HSI vsi ingress-qos-policy-profile Q_HSI_TC0
+commit
+```
+
+The `commit` can take a moment while all objects are validated and applied. When it finishes, leave configuration mode and return to the **Shelf** context. From there, open the IHUB and create the v-VPLS for the subscriber VLAN:
+
+```text title="IHUB commands"
+forward cli to ihub
+configure global
+service vpls 10
+admin-state enable
+service-name "10"
+service-id 10
+customer 1
+admin-state enable
+storm-control false
+user-user-com false
+v-vpls true
+vlan 10
+sap 1/2/1:10 admin-state enable
+exit
+mac-move allow-res-res false
+mac-move allow-res-reg true
+mac-move allow-reg-res false
 commit
 ```

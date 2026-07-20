@@ -5,12 +5,11 @@ sidebar_position: 1
 # Your first build
 
 This tutorial takes you from zero to a customized image running. No
-hardware or licenses needed: the base images are public.
+hardware is required to complete the basic workflow.
 
 ## 1. Requirements
 
-Docker and Python 3.10 or newer. That's it — the images are public, so no
-GHCR authentication is required.
+Docker and Python 3.10 or newer.
 
 ## 2. Pull the base images
 

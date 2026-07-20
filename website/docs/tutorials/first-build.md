@@ -5,13 +5,11 @@ sidebar_position: 1
 # Tu primera build
 
 En este tutorial partes de cero y terminas con una imagen personalizada
-corriendo. No hace falta hardware ni licencias: las imágenes base son
-públicas.
+corriendo. No hace falta hardware para completar el flujo básico.
 
 ## 1. Requisitos
 
-Docker y Python 3.10 o superior. Nada más — las imágenes son públicas, así
-que no necesitas autenticarte en GHCR.
+Docker y Python 3.10 o superior.
 
 ## 2. Descargar las imágenes base
 

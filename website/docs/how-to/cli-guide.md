@@ -16,13 +16,9 @@ Esta guía está dirigida a operadores que administran Light OLT directamente de
 
 :::
 
-Conéctate con una de las credenciales predeterminadas:
+Conéctate con las credenciales predeterminadas:
 
 ```bash title="Conexión SSH"
-ssh isadmin@<dirección-de-la-olt>
-# Contraseña: isadmin
-
-# Alternativa
 ssh admin@<dirección-de-la-olt>
 # Contraseña: admin
 ```
@@ -43,12 +39,13 @@ No todas las operaciones se han validado mediante el eCLI. El código es públic
 4. [Consultar los puertos uplink](#consultar-los-puertos-uplink).
 5. [Consultar el VPLS de gestión](#consultar-el-vpls-de-gestión).
 6. [Consultar el IES de gestión](#consultar-el-ies-de-gestión).
-7. [Configurar un puerto PON](#configurar-un-puerto-pon).
-8. [Crear la plantilla de ONU](#crear-la-plantilla-de-onu).
-9. [Aprovisionar una ONT](#aprovisionar-una-ont).
-10. [Crear los perfiles de servicio](#crear-los-perfiles-de-servicio).
-11. [Crear el servicio de usuario de capa 2](#crear-el-servicio-de-usuario-de-capa-2).
-12. [Aplicar el ejemplo de configuración completa](#ejemplo-de-configuración-completa).
+7. [Crear la v-VPLS para la VLAN de la ONT](#crear-la-v-vpls-para-la-vlan-de-la-ont).
+8. [Configurar un puerto PON](#configurar-un-puerto-pon).
+9. [Crear la plantilla de ONU](#crear-la-plantilla-de-onu).
+10. [Aprovisionar una ONT](#aprovisionar-una-ont).
+11. [Crear los perfiles de servicio](#crear-los-perfiles-de-servicio).
+12. [Crear el servicio de usuario de capa 2](#crear-el-servicio-de-usuario-de-capa-2).
+13. [Aplicar el ejemplo de configuración completa](#ejemplo-de-configuración-completa).
 
 ## Consultar la configuración de un contexto
 
@@ -264,6 +261,73 @@ A:admin@iHUB-OLT-LAB# info flat
     interface "to_BNG" { ipv4 dhcp lease-populate max-leases 20480 }
     ingress { }
     ingress { qos 1 }
+```
+
+## Crear la v-VPLS para la VLAN de la ONT
+
+El daemon `onu-dhcp` solo materializa un abonado cuando la VLAN de su VSI coincide con una v-VPLS habilitada en el IHUB. La v-VPLS también debe tener un SAP habilitado sobre un puerto físico incluido en el mapa de uplinks. En este ejemplo, el puerto `1/2/1` corresponde a `eth1` y la VLAN del abonado es la `10`.
+
+```text title="Flujo del tráfico"
+VSI_ONT-01_VEIP_HSI (VLAN 10)
+             │
+             ▼
+onu-dhcp detecta la VSI habilitada
+             │
+             ▼
+IHUB v-VPLS VLAN 10 → SAP 1/2/1:10
+             │
+             ▼
+interfaz Linux eth1.10 + macvlan del abonado
+             │
+             ▼
+DHCP DORA hacia el BNG
+             │
+             ▼
+BNG recibe la petición
+```
+
+Ejecuta estos comandos en el contexto **IHUB**, dentro de `configure global`:
+
+```text title="Comandos"
+forward cli to ihub
+configure global
+service vpls 10
+admin-state enable
+service-name "10"
+service-id 10
+customer 1
+admin-state enable
+storm-control false
+user-user-com false
+v-vpls true
+vlan 10
+sap 1/2/1:10 admin-state enable
+exit
+mac-move allow-res-res false
+mac-move allow-res-reg true
+mac-move allow-reg-res false
+commit
+```
+
+El resultado de `info flat` debe incluir:
+
+```text title="Salida de verificación"
+[gl:configure service vpls 10]
+A:admin@iHUB-OLT-LAB# info flat
+    service-name "10" { }
+    service-id 10 { }
+    customer "1" { }
+    admin-state { enable }
+    storm-control { false }
+    user-user-com { false }
+    v-vpls { true }
+    vlan 10 { }
+    sap 1/2/1:10 { }
+    sap 1/2/1:10 { admin-state enable }
+    mac-move { }
+    mac-move { allow-res-res false }
+    mac-move { allow-res-reg true }
+    mac-move { allow-reg-res false }
 ```
 
 ## Configurar un puerto PON
@@ -2304,7 +2368,7 @@ onu ONT-01
 
 ## Ejemplo de configuración completa
 
-Este bloque reúne todos los perfiles y objetos necesarios para crear una ONT con los nombres y valores de `example/lab.clab.yml`. Revísalo y sustituye, como mínimo, el contexto LT, número de serie, VLAN, identificadores y ancho de banda antes de pegarlo.
+Este bloque reúne todos los perfiles y objetos necesarios para crear una ONT con los nombres y valores del laboratorio de ejemplo.
 
 ```text title="Comandos"
 forward cli to lt-1
@@ -3037,5 +3101,28 @@ template-parameters interfaces interface template-ref ENET_VEIP admin true
 template-parameters interfaces interface template-ref VSI_VEIP_HSI pm-enable false vsi ingress-rule single-tagged match-criteria-tag-0-vlan-id 10 ingress-rewrite-tag-0-vlan-id 10
 exit
 template-parameters interfaces interface template-ref VSI_VEIP_HSI vsi ingress-qos-policy-profile Q_HSI_TC0
+commit
+```
+
+El `commit` puede tardar un momento mientras se validan y aplican todos los objetos. Cuando termine, sal del modo de configuración y vuelve al contexto **Shelf**. Desde allí, abre el IHUB y crea la v-VPLS de la VLAN del abonado:
+
+```text title="Comandos en el IHUB"
+forward cli to ihub
+configure global
+service vpls 10
+admin-state enable
+service-name "10"
+service-id 10
+customer 1
+admin-state enable
+storm-control false
+user-user-com false
+v-vpls true
+vlan 10
+sap 1/2/1:10 admin-state enable
+exit
+mac-move allow-res-res false
+mac-move allow-res-reg true
+mac-move allow-reg-res false
 commit
 ```
