@@ -123,9 +123,23 @@ FALLBACK_NS = {
     "bbf-hw-ext": "urn:bbf:yang:bbf-hardware-extension",
     "bbf-hardware-extension": "urn:bbf:yang:bbf-hardware-extension",
     "bbf-qos-tm": "urn:bbf:yang:bbf-qos-traffic-mngt",
+    "bbf-qos-sched": "urn:bbf:yang:bbf-qos-enhanced-scheduling",
+    "bbf-qos-enhanced-scheduling":
+        "urn:bbf:yang:bbf-qos-enhanced-scheduling",
+    "bbf-if-port-ref": "urn:bbf:yang:bbf-interface-port-reference",
     "nokia-mcast-cac": ("uri:http://www.nokia.com/Fixed-Networks/BBA/yang/"
                          "nokia-multicast-cac"),
     "bbf-xpon": "urn:bbf:yang:bbf-xpon",
+    "bbf-xponvani": "urn:bbf:yang:bbf-xponvani",
+    "nokia-olt-v-enet":
+        "http://www.nokia.com/Fixed-Networks/BBA/yang/nokia-sdan-olt-v-enet",
+    "bbf-frame-processing-profile":
+        "urn:bbf:yang:bbf-frame-processing-profile",
+    "bbf-qos-classifiers": "urn:bbf:yang:bbf-qos-classifiers",
+    "bbf-qos-cls": "urn:bbf:yang:bbf-qos-classifiers",
+    "bbf-qos-policing": "urn:bbf:yang:bbf-qos-policing",
+    "bbf-qos-plc": "urn:bbf:yang:bbf-qos-policing",
+    "bbf-l2-fwd": "urn:bbf:yang:bbf-l2-forwarding",
     "bbf-xpongemtcont": "urn:bbf:yang:bbf-xpongemtcont",
     "bbf-qos-traffic-mngt": "urn:bbf:yang:bbf-qos-traffic-mngt",
     "bbf-fiber-onu-emulated-mount":
@@ -187,6 +201,8 @@ def _merge_index(curated, gen):
         # Loose nodes allow navigation below incomplete mounted schemas.
         if cnode.get("loose") and not merged.get("loose"):
             merged["loose"] = 1
+        if cnode.get("cli-explicit-keys"):
+            merged["cli-explicit-keys"] = 1
         if "m" not in merged and "m" in cnode:
             merged["m"] = cnode["m"]
         # Merge children recursively.
@@ -217,6 +233,142 @@ def fallback_tree(plane):
             }}}},
     }
     if plane == "lt":
+        sched_leaf = lambda t="string": leaf("bbf-qos-sched", t)
+        scheduling_attrs = {
+            "priority": sched_leaf("uint8"),
+            "weight": sched_leaf("uint8"),
+        }
+        scheduler_queue = {
+            "local-queue-id": sched_leaf("uint32"),
+            "bac-name": sched_leaf("string"),
+            "priority": sched_leaf("uint8"),
+            "weight": sched_leaf("uint8"),
+            "shaper-name": sched_leaf("string"),
+        }
+        child_scheduler = {
+            "name": sched_leaf("leafref"),
+            **scheduling_attrs,
+        }
+        scheduler_node = {
+            "name": sched_leaf(),
+            "description": sched_leaf(),
+            "scheduling-level": sched_leaf("uint8"),
+            "shaper-name": sched_leaf("string"),
+            "child-scheduler-nodes": {
+                "k": "l", "m": "bbf-qos-sched", "keys": ["name"],
+                "c": child_scheduler,
+            },
+            "contains-queues": sched_leaf("boolean"),
+            "queue": {
+                "k": "l", "m": "bbf-qos-sched",
+                "keys": ["local-queue-id"], "cli-explicit-keys": 1,
+                "c": scheduler_queue,
+            },
+        }
+        tm_root = {
+            "k": "c", "m": "bbf-qos-tm", "c": {
+                "scheduler-node": {
+                    "k": "l", "m": "bbf-qos-sched", "keys": ["name"],
+                    "c": scheduler_node,
+                },
+                "child-scheduler-nodes": {
+                    "k": "l", "m": "bbf-qos-sched", "keys": ["name"],
+                    "c": child_scheduler,
+                },
+                "tc-id-2-queue-id-mapping-profile-name":
+                    leaf("bbf-qos-tm", "string"),
+            },
+        }
+        egress_tm_objects = {
+            "k": "c", "m": "bbf-qos-sched", "c": {
+                "root-if-name": sched_leaf("leafref"),
+                "scheduler-node-name": sched_leaf("leafref"),
+            },
+        }
+        olt_v_enet = {
+            "k": "c", "m": "bbf-xponvani", "c": {
+                "lower-layer-interface": leaf("bbf-xponvani", "leafref"),
+                "protocol-identifier-helper": {
+                    "k": "c", "m": "nokia-olt-v-enet", "c": {
+                        "slot-id": leaf("nokia-olt-v-enet", "uint16"),
+                        "port-id": leaf("nokia-olt-v-enet", "uint16"),
+                    },
+                },
+            },
+        }
+        frame_processing = "bbf-frame-processing-profile"
+        frame_processing_ref = {
+            "frame-processing-profile-ref":
+                leaf(frame_processing, "leafref"),
+            "tag-0": {"k": "c", "m": frame_processing, "c": {
+                "vlan-id": leaf(frame_processing, "uint16"),
+            }},
+            "tag-1": {"k": "c", "m": frame_processing, "c": {
+                "vlan-id": leaf(frame_processing, "uint16"),
+            }},
+        }
+        qos_cls = "bbf-qos-classifiers"
+        qos_plc = "bbf-qos-policing"
+        classifier_action = {
+            "action-type": leaf(qos_cls, "identityref"),
+            "pbit-marking-cfg": {"k": "c", "m": qos_cls, "c": {
+                "pbit-marking-list": {
+                    "k": "l", "m": qos_cls, "keys": ["index"], "c": {
+                        "index": leaf(qos_cls, "uint8"),
+                        "pbit-value": leaf(qos_cls, "uint8"),
+                    }},
+            }},
+            "dei-marking-cfg": {"k": "c", "m": qos_cls, "c": {
+                "dei-marking-list": {
+                    "k": "l", "m": qos_cls, "keys": ["index"], "c": {
+                        "index": leaf(qos_cls, "uint8"),
+                        "dei-value": leaf(qos_cls, "uint8"),
+                    }},
+            }},
+            "scheduling-traffic-class": leaf(qos_cls, "uint8"),
+            "pass": leaf(qos_cls, "empty"),
+        }
+        classifier_match = {
+            "match-all": leaf(qos_cls, "empty"),
+            "untagged": leaf(qos_cls, "empty"),
+            "tag": {"k": "l", "m": qos_cls, "keys": ["index"], "c": {
+                "index": leaf(qos_cls, "uint8"),
+                "in-pbit-list": leaf(qos_cls, "string"),
+                "in-dei": leaf(qos_cls, "uint8"),
+            }},
+            "dscp-range": leaf(qos_cls, "union"),
+            "any-protocol": leaf(qos_cls, "empty"),
+            "protocol": {"k": "F", "m": qos_cls, "t": "identityref"},
+            # These lists augment legacy match-criteria from
+            # bbf-qos-policing and must retain that namespace in XML.
+            "pbit-marking-list": {
+                "k": "l", "m": qos_plc, "keys": ["index"], "c": {
+                    "index": leaf(qos_plc, "uint8"),
+                    "pbit-value": leaf(qos_plc, "uint8"),
+                }},
+            "dei-marking-list": {
+                "k": "l", "m": qos_plc, "keys": ["index"], "c": {
+                    "index": leaf(qos_plc, "uint8"),
+                    "dei-value": leaf(qos_plc, "uint8"),
+                }},
+        }
+        t["classifiers"] = {"k": "c", "m": qos_cls, "c": {
+            "classifier-entry": {
+                "k": "l", "m": qos_cls, "keys": ["name"], "c": {
+                    "name": leaf(qos_cls),
+                    "description": leaf(qos_cls),
+                    "filter-operation": leaf(qos_cls, "identityref"),
+                    "match-criteria": {
+                        "k": "c", "m": qos_cls, "cli-transparent": 1,
+                        "c": classifier_match,
+                    },
+                    "classifier-action-entry-cfg": {
+                        "k": "l", "m": qos_cls,
+                        "keys": ["action-type"], "c": classifier_action,
+                    },
+                },
+            },
+        }}
         t["onus"] = {"k": "c", "m": "bbf-fiber-onu-emulated-mount", "c": {
             "onu": {"k": "l", "m": "bbf-fiber-onu-emulated-mount",
                     "keys": ["name"], "loose": 1, "c": {
@@ -232,7 +384,8 @@ def fallback_tree(plane):
                                    "c": {"tcont": {
                                        "k": "l",
                                        "m": "nokia-onus-from-template",
-                                       "keys": ["template-ref"], "loose": 1,
+                                       "keys": ["template-ref"],
+                                       "cli-explicit-keys": 1, "loose": 1,
                                        "c": {"id": leaf(
                                            "nokia-onus-from-template",
                                            "uint32")}}}},
@@ -240,7 +393,8 @@ def fallback_tree(plane):
                                      "c": {"gemport": {
                                          "k": "l",
                                          "m": "nokia-onus-from-template",
-                                         "keys": ["template-ref"], "loose": 1,
+                                         "keys": ["template-ref"],
+                                         "cli-explicit-keys": 1, "loose": 1,
                                          "c": {"id": leaf(
                                              "nokia-onus-from-template",
                                              "uint32")}}}},
@@ -249,15 +403,24 @@ def fallback_tree(plane):
                                 "interface": {
                                     "k": "l",
                                     "m": "nokia-onus-from-template",
-                                    "keys": ["template-ref"], "loose": 1,
+                                    "keys": ["template-ref"],
+                                    "cli-explicit-keys": 1, "loose": 1,
                                     "c": {}}}},
                         "hardware-config": {
                             "k": "c", "m": "nokia-onus-from-template", "c": {
                                 "hardware": {
                                     "k": "l",
                                     "m": "nokia-onus-from-template",
-                                    "keys": ["template-ref"], "loose": 1,
-                                    "c": {}}}},
+                                    "keys": ["template-ref"],
+                                    "cli-explicit-keys": 1, "loose": 1,
+                                    "c": {
+                                        "tca-monitoring-enabled": leaf(
+                                            "nokia-onus-from-template",
+                                            "boolean"),
+                                        "admin-state": leaf(
+                                            "nokia-onus-from-template",
+                                            "hw-mounted:admin-state"),
+                                    }}}},
                     }},
             }}}}
         t["interfaces"] = {"k": "c", "m": "ietf-interfaces", "c": {
@@ -265,13 +428,17 @@ def fallback_tree(plane):
                           "loose": 1, "c": {
                 "type": leaf("ietf-interfaces", "identityref"),
                 "enabled": leaf("ietf-interfaces", "boolean"),
+                "port-layer-if": leaf("bbf-interface-port-reference"),
                 "description": leaf("ietf-interfaces"),
                 "channel-group": _loose("bbf-xpon"),
                 "channel-partition": _loose("bbf-xpon"),
                 "channel-pair": _loose("bbf-xpon"),
                 "channel-termination": _loose("bbf-xpon"),
                 "v-ani": _loose("bbf-xpon"),
-                "tm-root": _loose("bbf-qos-traffic-mngt"),
+                "egress-tm-objects": egress_tm_objects,
+                "olt-v-enet": olt_v_enet,
+                **frame_processing_ref,
+                "tm-root": tm_root,
                 "port-layer-if": {"k": "F", "m": "bbf-xpon"},
             }}}}
         t["xpongemtcont"] = _loose("bbf-xpongemtcont")
@@ -300,6 +467,7 @@ class Plane:
                         SYSREPO_SHM_PREFIX=self.shm)
         self._idx = self._ns = self._desc = None
         self._suppress_commit_notice_until = 0.0
+        self._local_commit_depth = 0
         self._inst_cache = {}   # (module, path, keys, filters) -> (sig, rows)
         self._xml_cache = {}     # (ds, module, xpath) -> (sig, xml)
         self._roots_cache = {}   # (ds, module, xpath) -> (sig, [ET roots])
@@ -390,8 +558,16 @@ class Plane:
     def suppress_commit_notice(self, seconds=5.0):
         self._suppress_commit_notice_until = time.time() + seconds
 
+    def begin_local_commit(self):
+        self._local_commit_depth += 1
+
+    def end_local_commit(self):
+        self._local_commit_depth = max(0, self._local_commit_depth - 1)
+        self.suppress_commit_notice(max(2.0, COMMIT_POLL_SECONDS * 2.5))
+
     def commit_notice_suppressed(self):
-        return time.time() < self._suppress_commit_notice_until
+        return (self._local_commit_depth > 0
+                or time.time() < self._suppress_commit_notice_until)
 
     def run(self, args):
         # netopeer2 and oper_push create 0600 datastore files as root. The eCLI

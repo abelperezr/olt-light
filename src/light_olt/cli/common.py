@@ -36,8 +36,13 @@ import shlex
 import subprocess
 import sys
 
+try:
+    import termios
+except ImportError:
+    termios = None
+
 NC_NS = "urn:ietf:params:xml:ns:netconf:base:1.0"
-ECLI_VERSION = "v5-contexts+dynamic-forward+ihub-global"
+ECLI_VERSION = "v6.5-dependency-ordered-commit"
 PLANES = {
     "ihub":  ("/repo/ihub",  "ihub_", 831),
     "shelf": ("/repo/shelf", "shelf_", 832),
@@ -47,6 +52,43 @@ IDX_PATH = "/etc/olt/cli_index_%s.json.gz"
 COMMIT_POLL_SECONDS = float(os.environ.get("ECLI_COMMIT_POLL_SECONDS", "1.0"))
 SIG_CACHE_SECONDS = float(os.environ.get("ECLI_SIG_CACHE_SECONDS", "0.15"))
 XML_CACHE_MAX = int(os.environ.get("ECLI_XML_CACHE_MAX", "24"))
+_TTY_ECHO_STATE = [None]
+
+
+def begin_paste_safe_tty(readline_module):
+    if not readline_module or termios is None or not sys.stdin.isatty():
+        return None
+    try:
+        tty_fd = sys.stdin.fileno()
+        tty_attrs = termios.tcgetattr(tty_fd)
+        quiet_attrs = list(tty_attrs)
+        quiet_attrs[3] &= ~termios.ECHO
+        termios.tcsetattr(tty_fd, termios.TCSANOW, quiet_attrs)
+        state = (tty_fd, tty_attrs, quiet_attrs)
+        _TTY_ECHO_STATE[0] = state
+        return state
+    except (OSError, termios.error):
+        return None
+
+
+def interactive_input(prompt):
+    state = _TTY_ECHO_STATE[0]
+    if state is not None:
+        termios.tcsetattr(state[0], termios.TCSANOW, state[1])
+    try:
+        return input(prompt)
+    finally:
+        if state is not None:
+            termios.tcsetattr(state[0], termios.TCSANOW, state[2])
+
+
+def end_paste_safe_tty(state):
+    if state is not None:
+        try:
+            termios.tcsetattr(state[0], termios.TCSANOW, state[1])
+        except (OSError, termios.error):
+            pass
+    _TTY_ECHO_STATE[0] = None
 
 # Resolve sudo once. Plane uses it for sysrepo commands when the eCLI runs as
 # an unprivileged login user; an empty value means commands run directly.
@@ -64,6 +106,16 @@ _SUDO = _which("sudo")
 NS_NOKIA_HWI = ("http://www.nokia.com/Fixed-Networks/BBA/yang/"
                 "nokia-hardware-identities")
 NS_BBF_XPON_TYPES = "urn:bbf:yang:bbf-xpon-types"
+NS_BBF_HARDWARE_TYPES = "urn:bbf:yang:bbf-hardware-types"
+NS_IANA_HARDWARE = "urn:ietf:params:xml:ns:yang:iana-hardware"
+NS_IANA_IF_MOUNTED = "urn:ietf:params:xml:ns:yang:iana-if-type-mounted"
+NS_BBF_XPON_IF_MOUNTED = "urn:bbf:yang:bbf-xpon-if-type-mounted"
+NS_BBF_IF_MOUNTED = "urn:bbf:yang:bbf-if-type-mounted"
+NS_BBF_DOT1Q_TYPES = "urn:bbf:yang:bbf-dot1q-types"
+NS_BBF_XPON_ACCESS_LINE_TYPES = (
+    "urn:bbf:yang:bbf-xpon-access-line-characteristics-type")
+NS_NOKIA_TEMPLATE_COMMON = ("http://www.nokia.com/Fixed-Networks/BBA/yang/"
+                            "nokia-template-common")
 IDENTITY_NS = {
     "chassis": "urn:ietf:params:xml:ns:yang:iana-hardware",
     "container": "urn:ietf:params:xml:ns:yang:iana-hardware",
@@ -96,8 +148,43 @@ IDENTITY_NS = {
     "xgs": NS_BBF_XPON_TYPES,
     "xgpon": NS_BBF_XPON_TYPES,
     "gpon": NS_BBF_XPON_TYPES,
+    "inside-olt": NS_BBF_XPON_TYPES,
+    "outside-olt": NS_BBF_XPON_TYPES,
+    "c-vlan": NS_BBF_DOT1Q_TYPES,
+    "s-vlan": NS_BBF_DOT1Q_TYPES,
+    "xpon-tree-maximum-data-rate-upstream":
+        NS_BBF_XPON_ACCESS_LINE_TYPES,
+    "onu-maximum-data-rate-upstream": NS_BBF_XPON_ACCESS_LINE_TYPES,
+    "xpon-tree-maximum-data-rate-downstream":
+        NS_BBF_XPON_ACCESS_LINE_TYPES,
+    "onu-peak-data-rate-downstream": NS_BBF_XPON_ACCESS_LINE_TYPES,
 }
-IDENTITY_LEAVES = {"class", "type", "channel-pair-type"}
+MOUNTED_IDENTITY_NS = {
+    ("bbf-fiber-onu-emulated-mount", "usage", "node-template-usage"):
+        NS_NOKIA_TEMPLATE_COMMON,
+    ("bbf-fiber-onu-emulated-mount", "usage", "node-actual-usage"):
+        NS_NOKIA_TEMPLATE_COMMON,
+    ("bbf-fiber-onu-emulated-mount", "usage", "node-from-template-usage"):
+        NS_NOKIA_TEMPLATE_COMMON,
+    ("hw-mounted", "class", "chassis"): NS_IANA_HARDWARE,
+    ("hw-mounted", "class", "cage"): NS_BBF_HARDWARE_TYPES,
+    ("hw-mounted", "class", "transceiver"): NS_BBF_HARDWARE_TYPES,
+    ("hw-mounted", "class", "transceiver-link"): NS_BBF_HARDWARE_TYPES,
+    ("hw-mounted", "class", "rj45"): NS_BBF_HARDWARE_TYPES,
+    ("hw-mounted", "class", "rj11"): NS_NOKIA_HWI,
+    ("hw-mounted", "class", "virtual-port"): NS_NOKIA_HWI,
+    ("if-mounted", "type", "ethernetCsmacd"): NS_IANA_IF_MOUNTED,
+    ("if-mounted", "type", "voiceFXS"): NS_IANA_IF_MOUNTED,
+    ("if-mounted", "type", "ani"): NS_BBF_XPON_IF_MOUNTED,
+    ("if-mounted", "type", "onu-v-vrefpoint"): NS_BBF_XPON_IF_MOUNTED,
+    ("if-mounted", "type", "onu-v-enet"): NS_BBF_XPON_IF_MOUNTED,
+    ("if-mounted", "type", "vlan-sub-interface"): NS_BBF_IF_MOUNTED,
+    ("bbf-subif-tag-mounted", "tag-type", "c-vlan"): NS_BBF_DOT1Q_TYPES,
+}
+IDENTITY_LEAVES = {
+    "class", "type", "channel-pair-type", "channel-termination-type",
+    "location", "tag-type", "xpon-access-loop-characteristics",
+}
 
 # --------------------------------------------------------------------------
 # Advertise only commands implemented by the emulator. An explicit error is

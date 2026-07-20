@@ -156,7 +156,10 @@ def render_confd(el, prefix, depth, out):
         out.append("%s%s%s%s" % (" " * depth, prefix, name,
                                  (" " + mq(val)) if val else ""))
         return
-    if len(kids) == 1:
+
+    only_key = (len(kids) == 1 and _is_leaf(kids[0])
+                and strip_ns(kids[0].tag) in KEYISH)
+    if len(kids) == 1 and not only_key:
         render_confd(kids[0], prefix + name + " ", depth, out)
         return
     header = prefix + name

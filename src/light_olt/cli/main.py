@@ -20,7 +20,10 @@ import signal
 import sys
 import time
 
-from .common import ECLI_VERSION, PLANES, tokenize
+from .common import (
+    ECLI_VERSION, PLANES, begin_paste_safe_tty, end_paste_safe_tty,
+    interactive_input, tokenize,
+)
 from .completion import COMPL, CURRENT_PROMPT, readline
 from .confd_cli import ConfdCLI
 from .md_cli import MdCli
@@ -48,6 +51,7 @@ def banner(cli, user):
     print()
     print("Last login: %s." % time.strftime("%Y-%m-%dT%H:%M:%S%z"))
     print("Welcome, %s!" % user)
+    print("This is a customized Light OLT build.")
 
 
 def repl(start_ctx, user, oneshot=None):
@@ -123,28 +127,31 @@ def repl(start_ctx, user, oneshot=None):
         readline.parse_and_bind("tab: complete")
         readline.parse_and_bind('"?": possible-completions')
 
-    while stack:
-        cli = stack[-1]
-        p = cli.prompt()
-        CURRENT_PROMPT[0] = p.splitlines()[-1]
-        try:
-            line = input(p)
-        except EOFError:
-            print()
-            old = stack.pop()
-            stop_cli_watch(old)
-            continue
-        except KeyboardInterrupt:
-            print()
-            if isinstance(cli, ConfdCLI) and cli.config_mode:
-                cli.config_mode = False
-                cli.frames = []
-            continue
-        try:
-            if not feed(cli, line):
-                break
-        except Exception as e:
-            print("internal error: %s" % e)
+    tty_state = begin_paste_safe_tty(readline)
+    try:
+        while stack:
+            cli = stack[-1]
+            p = cli.prompt()
+            CURRENT_PROMPT[0] = p.splitlines()[-1]
+            try:
+                line = interactive_input(p)
+            except EOFError:
+                print()
+                old = stack.pop()
+                stop_cli_watch(old)
+                continue
+            except KeyboardInterrupt:
+                print()
+                if isinstance(cli, ConfdCLI) and cli.config_mode:
+                    cli.leave_config(print)
+                continue
+            try:
+                if not feed(cli, line):
+                    break
+            except Exception as e:
+                print("internal error: %s" % e)
+    finally:
+        end_paste_safe_tty(tty_state)
     return 0
 
 

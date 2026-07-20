@@ -29,7 +29,8 @@ import xml.etree.ElementTree as ET
 
 from .backend import CONFD_PREAMBLE, CommitWatcher, Plane
 from .common import (
-    BUILTIN_CONFIG, BUILTIN_OPER, apply_filter, run_ping, split_pipe, tokenize,
+    BUILTIN_CONFIG, BUILTIN_OPER, apply_filter, interactive_input, run_ping,
+    split_pipe, tokenize,
 )
 from .editing import EditSession
 from .rendering import (
@@ -38,7 +39,7 @@ from .rendering import (
 )
 from .schema import (
     PathSeg, ResolveError, _children, lookup, resolve,
-    schema_list_instances_for,
+    schema_list_instances_for, schema_node_after_tokens, schema_value_options,
 )
 
 class ConfdCLI:
@@ -95,7 +96,13 @@ class ConfdCLI:
         if not self.config_mode:
             return "%s# " % hn
         if self.frames:
-            last = self.frames[-1][-1]
+            # Keep transparent helper containers (for example classifier
+            # match-criteria) out of the visible ConfD-style prompt.
+            last = next(
+                (seg for seg in reversed(self.frames[-1])
+                 if not seg.node.get("cli-transparent")),
+                self.frames[-1][-1],
+            )
             key = "-".join((last.keys or {}).values())
             return "%s(config-%s%s)# " % (hn, last.name,
                                           ("-" + key) if key else "")
@@ -103,7 +110,9 @@ class ConfdCLI:
 
     # ---------- ayuda ------------------------------------------------------
     def _list_instances_for(self, base, body):
-        return schema_list_instances_for(self.plane, base, body)
+        roots = getattr(getattr(self, "session", None), "roots", {})
+        return schema_list_instances_for(
+            self.plane, base, body, roots.values())
 
     def _schema_completion(self, base, body):
         inst = self._list_instances_for(base, body)
@@ -111,10 +120,8 @@ class ConfdCLI:
             return {n: d for n, d in inst}, True
         node = base[-1].node if base else {"c": self.plane.index}
         if body:
-            try:
-                _, mode = resolve(self.plane, base, body)
-                node = mode[-1].node if mode else node
-            except ResolveError:
+            node = schema_node_after_tokens(self.plane, base, body)
+            if node is None:
                 return {}, False
         return {n: self.plane.desc(n) for n in _children(node)}, False
 
@@ -226,6 +233,21 @@ class ConfdCLI:
                     opts = {n: d for n, d in opts.items()
                             if n.startswith(partial)}
                 return sorted(opts.items())
+            roots = getattr(getattr(self, "session", None), "roots", {})
+            values = schema_value_options(
+                self.plane, base, body, roots.values())
+            if values is not None:
+                value_desc = ("<unsignedShort, 256 .. 1023> "
+                              "Next free G-PON Alloc-ID")
+                opts = {
+                    value: (value_desc if body
+                            and body[-1] == "alloc-id" else "")
+                    for value in values
+                }
+                if partial:
+                    opts = {n: d for n, d in opts.items()
+                            if n.startswith(partial)}
+                return sorted(opts.items())
             # Walk the schema separately from resolve(), tracking the node path
             # and keys consumed by the last list. resolve() is intentionally
             # greedy and reports an incomplete command at this exact point.
@@ -252,13 +274,14 @@ class ConfdCLI:
             for n, d in BUILTIN_CONFIG.items():
                 opts[n] = d
             if body:
-                try:
-                    _, mode = resolve(self.plane, base, body)
-                    node = mode[-1].node if mode else node
-                except ResolveError:
+                cursor_node = schema_node_after_tokens(
+                    self.plane, base, body)
+                if cursor_node is None:
                     if schema_started:
                         return []
                     node = {"c": {}}
+                else:
+                    node = cursor_node
             for n, nd in _children(node).items():
                 opts.setdefault(n, self.plane.desc(n))
         if partial:
@@ -391,7 +414,12 @@ class ConfdCLI:
             return None
         if c == "exit":
             if self.frames:
-                self.frames.pop()
+                frame = self.frames[-1]
+                if (len(frame) > 1
+                        and frame[-2].node.get("cli-transparent")):
+                    self.frames[-1] = frame[:-1]
+                else:
+                    self.frames.pop()
             else:
                 self.leave_config(out)
             return None
@@ -474,9 +502,14 @@ class ConfdCLI:
         if self.session.dirty:
             if sys.stdin.isatty():
                 while True:
-                    answer = input(
-                        "Uncommitted changes found, commit them? [yes/no/CANCEL] "
-                    ).strip()
+                    try:
+                        answer = interactive_input(
+                            "Uncommitted changes found, commit them? "
+                            "[yes/no/CANCEL] "
+                        ).strip()
+                    except KeyboardInterrupt:
+                        print()
+                        return False
                     if not answer:
                         answer = "yes"
                     answer_l = answer.lower()

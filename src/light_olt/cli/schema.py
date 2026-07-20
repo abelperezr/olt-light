@@ -30,6 +30,36 @@ Functions
 import re
 
 
+def _local_name(tag):
+    return tag.split("}", 1)[1] if tag.startswith("{") else tag
+
+
+def xml_child_text(el, name):
+    for child in list(el):
+        if _local_name(child.tag) == name:
+            value = (child.text or "").strip()
+            return value.split(":", 1)[-1] if ":" in value else value
+    return None
+
+
+def xml_path_elements(roots, path_names, path_keys=None):
+    """Small local XML walker; kept here to avoid a rendering/schema cycle."""
+    if not path_names:
+        return []
+    path_keys = path_keys or {}
+
+    def matches(el, pos):
+        return all(xml_child_text(el, key) == value
+                   for key, value in path_keys.get(pos, {}).items())
+
+    cur = [root for root in roots
+           if _local_name(root.tag) == path_names[0] and matches(root, 0)]
+    for pos, name in enumerate(path_names[1:], 1):
+        cur = [child for parent in cur for child in list(parent)
+               if _local_name(child.tag) == name and matches(child, pos)]
+    return cur
+
+
 CURATED_VALUE_OPTIONS = {
     ("bbf-xpon", "authentication-method"): (
         "serial-number", "registration-id", "as-per-v-ani-expected", "loid",
@@ -38,14 +68,141 @@ CURATED_VALUE_OPTIONS = {
         "fiftyg-twdm", "fiftyg-tdm", "twentyfivegs", "ngpon2-twdm",
         "ngpon2-ptp", "xgs", "xgpon", "gpon",
     ),
+    ("bbf-xpon", "channel-termination-type"): (
+        "fiftyg-twdm", "fiftyg-tdm", "twentyfivegs", "ngpon2-twdm",
+        "ngpon2-ptp", "xgs", "xgpon", "gpon",
+    ),
+    ("bbf-xpon", "location"): ("inside-olt", "outside-olt"),
     ("nokia-mcast-cac", "max-group-number"): ("no-limit",),
     ("nokia-mcast-cac", "max-multicast-rate-limit"): ("no-limit",),
     ("nokia-mcast-cac", "multicast-rate-limit-exceed-action"):
         ("drop", "best-effort"),
 }
 
+COMPLETION_VALUE_OPTIONS = {
+    ("bbf-qos-classifiers", "filter-operation"): (
+        "match-all-filter", "match-any-filter",
+    ),
+    ("bbf-qos-classifiers", "action-type"): (
+        "scheduling-traffic-class", "pbit-marking", "dei-marking", "pass",
+    ),
+    ("ietf-interfaces", "type"): (
+        "channel-group", "channel-partition", "channel-pair",
+        "channel-termination", "v-ani", "ani", "olt-v-enet",
+        "onu-v-enet", "vlan-sub-interface", "ethernetCsmacd",
+    ),
+    ("bbf-if-usg", "interface-usage"): (
+        "user-port", "network-port", "subtended-node-port", "inherit",
+    ),
+    ("bbf-l2-forwarding", "receiving-interface-usage"): (
+        "user-port", "network-port", "subtended-node-port", "inherit",
+    ),
+    ("bbf-l2-forwarding", "mac-can-not-move-to"): (
+        "user-port", "network-port", "subtended-node-port", "inherit",
+    ),
+    ("bbf-l2-forwarding", "in-interface-usage"): (
+        "user-port", "network-port", "subtended-node-port", "inherit",
+    ),
+    ("bbf-l2-forwarding", "out-interface-usage"): (
+        "user-port", "network-port", "subtended-node-port", "inherit",
+    ),
+    ("bbf-l2-forwarding", "interface-usages"): (
+        "user-port", "network-port", "subtended-node-port", "inherit",
+    ),
+    ("bbf-frame-processing-profile", "tag-type"): (
+        "c-vlan", "s-vlan", "tag-type-from-match",
+    ),
+    ("bbf-frame-processing-profile", "vlan-id"): (
+        "parameter-vlan-id", "priority-tagged", "vlan-id-from-match",
+    ),
+    ("bbf-frame-processing-profile", "pbit"): ("any",),
+    ("bbf-frame-processing-profile", "dei"): ("any",),
+    ("nokia-arpsec", "downstream-arp-broadcast"): (
+        "apply-layer2-forwarding", "secured-forwarding",
+        "secured-with-fallback-to-layer2",
+    ),
+    ("nokia-ndsec", "downstream-ns-multicast"): (
+        "apply-layer2-forwarding", "secured-forwarding",
+        "secured-with-fallback-to-layer2",
+    ),
+    ("onus-from-template", "admin-state"): (
+        "unknown", "locked", "shutting-down", "unlocked",
+    ),
+    ("nokia-onus-from-template", "admin-state"): (
+        "unknown", "locked", "shutting-down", "unlocked",
+    ),
+    ("bbf-l2-dhcpv4-relay", "suboptions"): (
+        "circuit-id", "remote-id", "access-loop-characteristics",
+    ),
+    ("bbf-l2-dhcpv4-relay", "default-circuit-id-syntax"): (
+        "Access_Node_ID:Chassis:Port:OnuID:v-ani:olt-v-enet",
+    ),
+    ("bbf-l2-dhcpv4-relay", "default-remote-id-syntax"): (
+        "Access_Node_ID:Chassis:Port:OnuID:v-ani:olt-v-enet",
+    ),
+    ("bbf-ldra", "option"): (
+        "interface-id", "remote-id", "vendor-specific-information",
+    ),
+    ("bbf-ldra", "default-interface-id-syntax"): (
+        "Access_Node_ID:Chassis:Port:OnuID:v-ani:olt-v-enet",
+    ),
+    ("bbf-ldra", "default-remote-id-syntax"): ("pon-id",),
+    ("bbf-xpon-acc-d6r", "xpon-access-loop-characteristics"): (
+        "xpon-tree-maximum-data-rate-upstream",
+        "onu-maximum-data-rate-upstream",
+        "xpon-tree-maximum-data-rate-downstream",
+        "onu-peak-data-rate-downstream",
+    ),
+    ("bbf-xpon-access-line-characteristics-dhcpv6",
+     "xpon-access-loop-characteristics"): (
+        "xpon-tree-maximum-data-rate-upstream",
+        "onu-maximum-data-rate-upstream",
+        "xpon-tree-maximum-data-rate-downstream",
+        "onu-peak-data-rate-downstream",
+    ),
+    ("bbf-pppoe-intermediate-agent", "subtag"): (
+        "circuit-id", "remote-id", "access-loop-characteristics",
+    ),
+    ("bbf-pppoe-intermediate-agent", "default-circuit-id-syntax"): (
+        "Access_Node_ID:Chassis:Port:OnuID:v-ani:olt-v-enet",
+    ),
+    ("bbf-pppoe-intermediate-agent", "default-remote-id-syntax"): (
+        "Access_Node_ID:Chassis:Port:OnuID:v-ani:olt-v-enet",
+    ),
+}
+
+REFERENCE_TARGETS = {
+    ("bbf-frame-processing-profile", "frame-processing-profile-ref"):
+        ("bbf-frame-processing-profile", "frame-processing-profiles",
+         ("frame-processing-profiles", "frame-processing-profile"), ("name",)),
+    ("bbf-l2-forwarding", "flooding-policies-profile"):
+        ("bbf-l2-forwarding", "forwarding",
+         ("forwarding", "flooding-policies-profiles",
+          "flooding-policies-profile"), ("name",)),
+    ("bbf-l2-forwarding", "forwarding-database"):
+        ("bbf-l2-forwarding", "forwarding",
+         ("forwarding", "forwarding-databases", "forwarding-database"),
+         ("name",)),
+    ("bbf-l2-forwarding", "split-horizon-profile"):
+        ("bbf-l2-forwarding", "forwarding",
+         ("forwarding", "split-horizon-profiles", "split-horizon-profile"),
+         ("name",)),
+    ("bbf-l2-forwarding", "mac-learning-control-profile"):
+        ("bbf-l2-forwarding", "forwarding",
+         ("forwarding", "mac-learning-control-profiles",
+          "mac-learning-control-profile"), ("name",)),
+}
+
+CURATED_LIST_KEY_OPTIONS = {
+    ("bbf-l2-forwarding", "flooding-policy"): ("dn_drop", "up_drop"),
+}
+
 UINT_OR_NO_LIMIT_LEAVES = {
     "max-group-number", "max-multicast-rate-limit",
+}
+
+VALUELESS_STRING_LEAVES = {
+    ("ietf-interfaces", "description"),
 }
 
 class PathSeg:
@@ -91,10 +248,46 @@ def leaf_value_options(name, node):
         return tuple(indexed)
     if (node.get("t") or "").lower().startswith("boolean"):
         return ("false", "true")
-    return CURATED_VALUE_OPTIONS.get((node.get("m"), name))
+    key = (node.get("m"), name)
+    return CURATED_VALUE_OPTIONS.get(key) or COMPLETION_VALUE_OPTIONS.get(key)
+
+
+def schema_leaf_value_options(plane, name, node, candidate_roots=None):
+    """Static values plus live values for well-known profile leafrefs."""
+    options = list(leaf_value_options(name, node) or ())
+    if (node.get("m"), name) == ("bbf-xpongemtcont", "alloc-id"):
+        used = set()
+        roots = list(candidate_roots or ())
+        if hasattr(plane, "export_xml_roots"):
+            roots += list(plane.export_xml_roots(
+                "running", "bbf-xpongemtcont") or ())
+        for root in roots:
+            for el in root.iter():
+                if _local_name(el.tag) == "alloc-id":
+                    try:
+                        used.add(int((el.text or "").strip()))
+                    except ValueError:
+                        pass
+        options.append(str(next(
+            (value for value in range(256, 1024) if value not in used),
+            256)))
+    target = REFERENCE_TARGETS.get((node.get("m"), name))
+    if target and hasattr(plane, "list_instances"):
+        module, top, path, keys = target
+        for value, _ in plane.list_instances(
+                module, top, list(path), list(keys), {}, []):
+            if value not in options:
+                options.append(value)
+        for el in xml_path_elements(list(candidate_roots or ()), list(path)):
+            value = xml_child_text(el, keys[0])
+            if value and value not in options:
+                options.append(value)
+    return tuple(options) if options else None
 
 
 def _validate_leaf_value(name, node, value, pos):
+    if (node.get("m"), name) in COMPLETION_VALUE_OPTIONS:
+        return
     options = leaf_value_options(name, node)
     if options is None or value in options:
         return
@@ -103,7 +296,7 @@ def _validate_leaf_value(name, node, value, pos):
     raise ResolveError(pos, "invalid value", list(options))
 
 
-def schema_value_options(plane, base, tokens):
+def schema_value_options(plane, base, tokens, candidate_roots=None):
     """Return value completions when ``tokens`` ends at a leaf name."""
     node = base[-1].node if base else {"c": plane.index, "k": "c"}
     i = 0
@@ -116,9 +309,17 @@ def schema_value_options(plane, base, tokens):
             return None
         kind = child.get("k", "c")
         if kind == "l":
-            i += 1 + len(child.get("keys", []))
-            if i > len(tokens):
-                return None
+            for key in child.get("keys", []):
+                i += 1
+                if i >= len(tokens):
+                    return None
+                if child.get("cli-explicit-keys"):
+                    if not key.startswith(tokens[i]):
+                        return None
+                    i += 1
+                    if i >= len(tokens):
+                        return None
+            i += 1
             node = child
             continue
         if kind == "c":
@@ -126,9 +327,83 @@ def schema_value_options(plane, base, tokens):
             i += 1
             continue
         if kind in ("f", "F") and i == len(tokens) - 1:
-            return leaf_value_options(real, child)
+            options = schema_leaf_value_options(
+                plane, real, child, candidate_roots)
+            if kind == "F" and options is not None:
+                return ("[",) + tuple(options)
+            return options
+        if kind == "F":
+            options = schema_leaf_value_options(
+                plane, real, child, candidate_roots)
+            if options is None:
+                return None
+            rest = tokens[i + 1:]
+            if rest and rest[0] == "[":
+                rest = rest[1:]
+            if "]" in rest:
+                return None
+            used = set(rest)
+            remaining = tuple(value for value in options if value not in used)
+            return remaining + (("]",) if rest else ())
         return None
     return None
+
+
+def schema_node_after_tokens(plane, base, tokens):
+    """Return the schema parent left after complete leaf assignments."""
+    node = base[-1].node if base else {"c": plane.index, "k": "c"}
+    i = 0
+    while i < len(tokens):
+        try:
+            _, child = lookup(node, tokens[i])
+        except ResolveError:
+            return None
+        if child is None:
+            return None
+        kind = child.get("k", "c")
+        if kind == "l":
+            i += 1
+            for key in child.get("keys", []):
+                if i >= len(tokens):
+                    return None
+                if child.get("cli-explicit-keys"):
+                    if not key.startswith(tokens[i]):
+                        return None
+                    i += 1
+                    if i >= len(tokens):
+                        return None
+                i += 1
+            node = child
+            continue
+        if kind == "c":
+            node = child
+            i += 1
+            continue
+        if kind in ("f", "F"):
+            i += 1
+            if i >= len(tokens):
+                return None
+            if kind == "F" and tokens[i] == "[":
+                i += 1
+                while i < len(tokens) and tokens[i] != "]":
+                    i += 1
+                if i >= len(tokens):
+                    return None
+                i += 1
+            else:
+                leaf_type = (child.get("t") or "").lower()
+                next_is_sibling = False
+                if leaf_type.startswith(("boolean", "empty")):
+                    try:
+                        _, sibling = lookup(node, tokens[i])
+                        next_is_sibling = sibling is not None
+                    except ResolveError:
+                        pass
+                if not next_is_sibling:
+                    i += 1
+            continue
+        return None
+    return node
 
 
 def resolve(plane, ctx_segs, tokens):
@@ -163,7 +438,14 @@ def resolve(plane, ctx_segs, tokens):
             for k in ch.get("keys", []):
                 i += 1
                 if i >= len(tokens):
-                    raise ResolveError(i - 1, "incomplete command")
+                    options = [k] if ch.get("cli-explicit-keys") else []
+                    raise ResolveError(i - 1, "incomplete command", options)
+                if ch.get("cli-explicit-keys"):
+                    if not k.startswith(tokens[i]):
+                        raise ResolveError(i, "element does not exist", [k])
+                    i += 1
+                    if i >= len(tokens):
+                        raise ResolveError(i - 1, "incomplete command")
                 kv[k] = tokens[i]
             segs.append(PathSeg(real, mod, kv, ch))
             node = ch
@@ -195,8 +477,15 @@ def resolve(plane, ctx_segs, tokens):
                     val = tokens[i]
                     _validate_leaf_value(real, ch, val, i)
                 else:
-                    if (ch.get("t") or "").lower().startswith("boolean"):
+                    leaf_type = (ch.get("t") or "").lower()
+                    if leaf_type.startswith("boolean"):
                         val = "true"   # A valueless boolean means enabled.
+                        i -= 1
+                    elif leaf_type.startswith("empty"):
+                        val = ""
+                        i -= 1
+                    elif (ch.get("m"), real) in VALUELESS_STRING_LEAVES:
+                        val = ""
                         i -= 1
                     else:
                         options = leaf_value_options(real, ch) or ()
@@ -218,7 +507,7 @@ def resolve(plane, ctx_segs, tokens):
     return actions, mode
 
 
-def schema_list_instances_for(plane, base, body):
+def schema_list_instances_for(plane, base, body, candidate_roots=None):
     """Return existing list keys when a YANG path ends at a list.
 
     ``base`` is the current absolute context and ``body`` contains tokens typed
@@ -250,17 +539,50 @@ def schema_list_instances_for(plane, base, body):
         path_names.append(real)
         if kind == "l":
             keys = ch.get("keys", [])
-            supplied = n - (i + 1)
-            supplied_vals = body[i + 1:i + 1 + min(supplied, len(keys))]
-            if supplied < len(keys):
+            cursor = i + 1
+            supplied_vals = []
+            explicit = ch.get("cli-explicit-keys")
+            for key in keys:
+                if cursor >= n:
+                    if explicit:
+                        return [(key, plane.desc(key))]
+                    top = path_names[0] if path_names else real
+                    found = plane.list_instances(
+                        module, top, path_names, keys, path_keys,
+                        supplied_vals)
+                    for el in xml_path_elements(
+                            list(candidate_roots or ()), path_names,
+                            path_keys):
+                        value = xml_child_text(el, key)
+                        if value:
+                            found.append((value, ""))
+                    key_node = _children(ch).get(key, {})
+                    schema_values = schema_leaf_value_options(
+                        plane, key, key_node) or ()
+                    curated = CURATED_LIST_KEY_OPTIONS.get((module, real), ())
+                    return sorted(set(found)
+                                  | {(v, "") for v in schema_values}
+                                  | {(v, "") for v in curated})
+                if explicit:
+                    if not key.startswith(body[cursor]):
+                        return [(key, plane.desc(key))]
+                    cursor += 1
+                    if cursor >= n:
+                        top = path_names[0] if path_names else real
+                        return plane.list_instances(
+                            module, top, path_names, keys, path_keys,
+                            supplied_vals)
+                supplied_vals.append(body[cursor])
+                cursor += 1
+            if len(supplied_vals) < len(keys):
                 top = path_names[0] if path_names else real
                 return plane.list_instances(module, top, path_names, keys,
                                             path_keys, supplied_vals)
             key_pos = len(path_names) - 1
             path_keys[key_pos] = {
-                key: body[i + 1 + off] for off, key in enumerate(keys)
+                key: supplied_vals[off] for off, key in enumerate(keys)
             }
-            i += 1 + len(keys)
+            i = cursor
             node = ch
             continue
         node = ch

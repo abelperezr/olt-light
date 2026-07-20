@@ -1,7 +1,9 @@
 import unittest
 
+from light_olt.cli.backend import fallback_tree
 from light_olt.cli.confd_cli import ConfdCLI
 from light_olt.cli.md_cli import MdCli
+from light_olt.cli.schema import PathSeg, resolve
 
 
 HARDWARE = """
@@ -59,6 +61,72 @@ class ContextTests(unittest.TestCase):
         self.assertFalse(cli.in_cfg)
         cli.handle("configure g", output.append)
         self.assertTrue(cli.in_cfg)
+
+    def test_lt_completes_schema_leaf_values(self):
+        interface_node = {
+            "k": "l", "m": "ietf-interfaces", "keys": ["name"],
+            "c": {
+                "channel-partition": {
+                    "k": "c", "m": "bbf-xpon",
+                    "c": {
+                        "authentication-method": {
+                            "k": "f", "m": "bbf-xpon", "t": "enumeration",
+                        },
+                    },
+                },
+                "multicast-cac": {
+                    "k": "c", "m": "nokia-mcast-cac",
+                    "c": {
+                        "multicast-rate-limit-exceed-action": {
+                            "k": "f", "m": "nokia-mcast-cac",
+                            "t": "bbf-mgmd:rate-limit-action-enum",
+                        },
+                    },
+                },
+            },
+        }
+        cli = ConfdCLI("lt", "admin")
+        cli.plane = FakePlane("lt")
+        cli.plane.index = {}
+        cli.config_mode = True
+        cli.frames = [[PathSeg(
+            "interface", "ietf-interfaces", {"name": "PON1"}, interface_node,
+        )]]
+
+        self.assertEqual(
+            cli.completion_options(
+                ["channel-partition", "authentication-method"], "as",
+            ),
+            [("as-per-v-ani-expected", "")],
+        )
+        self.assertEqual(
+            cli.completion_options(
+                ["multicast-cac", "multicast-rate-limit-exceed-action"],
+                "best",
+            ),
+            [("best-effort", "")],
+        )
+
+    def test_exit_from_classifier_tag_retains_transparent_match_context(self):
+        plane = FakePlane("lt")
+        plane.index = fallback_tree("lt")
+        _, classifier = resolve(
+            plane, [], "classifiers classifier-entry copy_tag_pbit0".split())
+        _, tag = resolve(
+            plane, classifier, "match-criteria tag 0".split())
+
+        cli = ConfdCLI("lt", "admin")
+        cli.plane = plane
+        cli.config_mode = True
+        cli.frames = [classifier, tag]
+        cli.handle_config(["exit"], None, lambda _message: None, "exit")
+
+        self.assertEqual(cli.ctx()[-1].name, "match-criteria")
+        self.assertIn("config-classifier-entry-copy_tag_pbit0", cli.prompt())
+        actions, _ = resolve(plane, cli.ctx(), "dscp-range any".split())
+        self.assertEqual(actions[0][2].name, "dscp-range")
+        actions, _ = resolve(plane, cli.ctx(), ["any-protocol"])
+        self.assertEqual(actions[0][2].name, "any-protocol")
 
 
 if __name__ == "__main__":
