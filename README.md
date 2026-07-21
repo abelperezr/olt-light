@@ -57,7 +57,7 @@ La imagen personalizada se llama `light-olt:dev` por defecto. Puedes cambiar
 la base y el tag sin editar archivos:
 
 ```bash
-BASE_IMAGE=ghcr.io/abelperezr/olt-ls:0.0.1 \
+BASE_IMAGE=ghcr.io/abelperezr/olt-light:0.0.1 \
 IMAGE_TAG=ghcr.io/mi-usuario/mi-olt:dev \
 ./build.sh
 ```
@@ -79,7 +79,7 @@ Requirements: Docker and Python 3.10+. The images are public — no GHCR
 login needed.
 
 ```bash
-docker pull ghcr.io/abelperezr/olt-ls:0.0.1
+docker pull ghcr.io/abelperezr/olt-light:0.0.1
 docker pull ghcr.io/abelperezr/olt-proxy:0.0.1
 
 ./build.sh check     # local tests
@@ -101,7 +101,7 @@ The customized image is tagged `light-olt:dev` by default. Override the base
 and the output tag through environment variables:
 
 ```bash
-BASE_IMAGE=ghcr.io/abelperezr/olt-ls:0.0.1 \
+BASE_IMAGE=ghcr.io/abelperezr/olt-light:0.0.1 \
 IMAGE_TAG=ghcr.io/my-user/my-olt:dev \
 ./build.sh
 ```
