@@ -6,7 +6,7 @@ sidebar_position: 3
 
 Este proyecto se publica en dos piezas deliberadamente separadas.
 
-**Las imágenes base** (`olt-ls`, `olt-proxy`) contienen los modelos YANG de
+**Las imágenes base** (`olt-light`, `olt-proxy`) contienen los modelos YANG de
 Nokia, los device extensions, los seeds de fábrica y los repos sysrepo
 precompilados. Esos artefactos son necesarios para que Altiplano acepte al
 emulador como un Lightspan, pero no son nuestros para redistribuir como
