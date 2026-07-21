@@ -14,7 +14,7 @@ Docker y Python 3.10 o superior.
 ## 2. Descargar las imágenes base
 
 ```bash
-docker pull ghcr.io/abelperezr/olt-ls:0.0.1
+docker pull ghcr.io/abelperezr/olt-light:0.0.1
 docker pull ghcr.io/abelperezr/olt-proxy:0.0.1
 ```
 
