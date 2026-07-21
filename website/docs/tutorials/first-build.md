@@ -43,7 +43,7 @@ capa editable sobre la base, que ya trae todo lo pesado. Puedes cambiar la
 base y el tag sin tocar archivos:
 
 ```bash
-BASE_IMAGE=ghcr.io/abelperezr/olt-ls:0.0.1 \
+BASE_IMAGE=ghcr.io/abelperezr/olt-light:0.0.1 \
 IMAGE_TAG=ghcr.io/mi-usuario/mi-olt:dev \
 ./build.sh
 ```
