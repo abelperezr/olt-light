@@ -20,7 +20,7 @@ En este tutorial prepararás un laboratorio con Light OLT conectada a un BNG Nok
 Descarga la imagen de la OLT:
 
 ```bash
-docker pull ghcr.io/abelperezr/olt-ls:0.0.1
+docker pull ghcr.io/abelperezr/olt-light:0.0.1
 ```
 
 Si utilizarás Nokia Altiplano, descarga también el proxy NETCONF:
